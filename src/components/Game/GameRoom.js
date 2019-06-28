@@ -309,59 +309,6 @@ class GameRoom extends Component {
         this.setState({isGameStated : true});
     }
 
-    // deepClone(x){
-        
-    //         if (!item) { return item; } // null, undefined values check
-        
-    //         var types = [ Number, String, Boolean ], 
-    //             result;
-        
-    //         // normalizing primitives if someone did new String('aaa'), or new Number('444');
-    //         types.forEach(function(type) {
-    //             if (item instanceof type) {
-    //                 result = type( item );
-    //             }
-    //         });
-        
-    //         if (typeof result == "undefined") {
-    //             if (Object.prototype.toString.call( item ) === "[object Array]") {
-    //                 result = [];
-    //                 item.forEach(function(child, index, array) { 
-    //                     result[index] = clone( child );
-    //                 });
-    //             } else if (typeof item == "object") {
-    //                 // testing that this is DOM
-    //                 if (item.nodeType && typeof item.cloneNode == "function") {
-    //                     result = item.cloneNode( true );    
-    //                 } else if (!item.prototype) { // check that this is a literal
-    //                     if (item instanceof Date) {
-    //                         result = new Date(item);
-    //                     } else {
-    //                         // it is an object literal
-    //                         result = {};
-    //                         for (var i in item) {
-    //                             result[i] = clone( item[i] );
-    //                         }
-    //                     }
-    //                 } else {
-    //                     // depending what you would like here,
-    //                     // just keep the reference, or create new object
-    //                     if (false && item.constructor) {
-    //                         // would not advice to do that, reason? Read below
-    //                         result = new item.constructor();
-    //                     } else {
-    //                         result = item;
-    //                     }
-    //                 }
-    //             } else {
-    //                 result = item;
-    //             }
-    //         }
-        
-    //         return result;
-        
-    // } // deep clone
-
     handelPrevClick(){
         if(this.state.currentStateIndex === parseInt(0))
             alert("There are no more moves back");
@@ -412,39 +359,44 @@ class GameRoom extends Component {
 
     takeTileFromPot() {
         const curPotTiles = this.state.potTiles;
-        
-        if(this.state.potTiles.length === 0) {
-            alert("Pot is empty")
-        } else {
-            this.setState(prevState => {
-                const oldPotTiles = prevState.potTiles;
-                const oldPlayerTiles = prevState.playerTiles;
-                this.statesArray.push(this.deepClone(this.state));
-                oldPlayerTiles.push(oldPotTiles.splice(oldPotTiles.length -1, 1)[0]);
-                return {
-                    potTiles: oldPotTiles,
-                    playerTiles : oldPlayerTiles,
-                    totalTurns: prevState.totalTurns + 1,
-                    totalPot: prevState.totalPot + 1,
-                    avgTimePerTurn: (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
-                    score : this.getScoreFromTiles(this.state.playerTiles),
-                    currentStateIndex: prevState.currentStateIndex  + 1,
-                  //  prevTurn : turns1
-                }
-            }) 
-    } // else
+      
+        console.log("dddd");
+        // 1. notyfing the sever that we made a move (we already checked that it is legal)
+        fetch('/game/pot', {method:'POST', credentials: 'include'})
+
+
+    //     if(this.state.potTiles.length === 0) {
+    //         alert("Pot is empty")
+    //     } else {
+    //         this.setState(prevState => {
+    //             const oldPotTiles = prevState.potTiles;
+    //             const oldPlayerTiles = prevState.playerTiles;
+    //             this.statesArray.push(this.deepClone(this.state));
+    //             oldPlayerTiles.push(oldPotTiles.splice(oldPotTiles.length -1, 1)[0]);
+    //             return {
+    //                 potTiles: oldPotTiles,
+    //                 playerTiles : oldPlayerTiles,
+    //                 totalTurns: prevState.totalTurns + 1,
+    //                 totalPot: prevState.totalPot + 1,
+    //                 avgTimePerTurn: (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
+    //                 score : this.getScoreFromTiles(this.state.playerTiles),
+    //                 currentStateIndex: prevState.currentStateIndex  + 1,
+    //               //  prevTurn : turns1
+    //             }
+    //         }) 
+    // } // else
 
             
-            if(curPotTiles.length <= 1) {
-                    window.setTimeout(() => {
-                    if(!this.state.isGameOver && this.hasNoMoreLegalMoves()) {
-                        alert('player loses!')
-                        this.setState({
-                            isGameOver:true
-                        })
-                    } // if
-            } , 1000); 
-        } // if
+    //         if(curPotTiles.length <= 1) {
+    //                 window.setTimeout(() => {
+    //                 if(!this.state.isGameOver && this.hasNoMoreLegalMoves()) {
+    //                     alert('player loses!')
+    //                     this.setState({
+    //                         isGameOver:true
+    //                     })
+    //                 } // if
+    //         } , 1000); 
+    //     } // if
     } // takeFromPot
     
     tileWasPlaced(tile) { // "03"
