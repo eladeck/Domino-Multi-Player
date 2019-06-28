@@ -86,10 +86,14 @@ class Board extends Component {
             // only if the selecctedId is not empty string
             if(values) {
                 if(this.props.isMoveValid(i, j)) {
+
+                    // 1. notyfing the sever that we made a move (we already checked that it is legal)
+                    fetch(`/game/move?i=${i}&j=${j}&selectedTile=${this.props.selectedTile}&verticality=${document.getElementById(this.props.selectedTile).parentNode.id[11]}`,
+                    {method:'POST', credentials: 'include'})
+
+                    // 2.
                     this.props.tileWasPlaced(this.props.selectedTile);
-                    let newLogicBoard = this.props.logicBoard; // this.props.logicBoard equals "prevState.logicBoard"
-                    newLogicBoard[i][j] = `${values},${document.getElementById(this.props.selectedTile).parentNode.id[11]}`; // {values,verticality} 
-                    this.props.updateLogicBoard(newLogicBoard);
+
                     target.style.backgroundColor = 'transparent';
                 } else {
                     alert('NOT A LEGAL MOVE');
@@ -115,10 +119,6 @@ class Board extends Component {
 
     //     return board;
     // }
-
-    componentDidMount() {
-
-    }
 
     manageBoard() { // tahles: build the jsx array
         const boardSize = this.props.logicBoard.length;

@@ -18,22 +18,22 @@ class GameRoom extends Component {
         super(props);
         this.statesArray = [];
         this.isLastTileWasFlaced = false;
-        const shuffledTiles = this.shuffleTiles();
-        const firstSix = shuffledTiles.slice(0, 6);
+        // const shuffledTiles = this.shuffleTiles();
+        // const firstSix = shuffledTiles.slice(0, 6);
         this.boardSize = 58; // some extra room so we don't get to the edges!
-        const tiles = this.createTiles();
-        const potTiles = shuffledTiles.slice(6, 28);
-        const playerTiles = shuffledTiles.slice(0, 6);
+        // const tiles = this.createTiles();
+        // const potTiles = shuffledTiles.slice(6, 28);
+        // const playerTiles = shuffledTiles.slice(0, 6);
         const logicBoard = []
-        const score = this.getScoreFromTiles(firstSix);
+        // const score = this.getScoreFromTiles(firstSix);
 
         this.state = {
-            tiles, // ["00","01", ... ] 
-            shuffledTiles,
-            potTiles,
-            playerTiles,
+            // tiles:null, // ["00","01", ... ] 
+            // shuffledTiles,
+            // potTiles,
+            playerTiles:null, 
             selectedTile:null, // an ID!!!!!!!!! NOT a ref to DOM element!!
-            logicBoard,
+            logicBoard:null,
 
             //stats
             incrementer: null,
@@ -41,7 +41,7 @@ class GameRoom extends Component {
             totalTurns: 0,
             totalPot: 0,
             avgTimePerTurn: 0,
-            score,
+            score:0,
             prevTurn: null,
             currentStateIndex: 0,
             isGameStated: false,
@@ -51,12 +51,9 @@ class GameRoom extends Component {
             isTimeStarted: false,
         }
         
-        this.createTiles = this.createTiles.bind(this);
-        this.shuffleTiles = this.shuffleTiles.bind(this);
         this.handleSelected = this.handleSelected.bind(this);
         this.tileWasPlaced = this.tileWasPlaced.bind(this);
         this.takeTileFromPot = this.takeTileFromPot.bind(this);
-        this.updateLogicBoard = this.updateLogicBoard.bind(this);
         this.isMoveValid = this.isMoveValid.bind(this);
         this.handelUndoClcik = this.handelUndoClcik.bind(this);
         this.hasNoMoreLegalMoves = this.hasNoMoreLegalMoves.bind(this);
@@ -71,23 +68,28 @@ class GameRoom extends Component {
         this.handleOpenMenuSatrtClick = this.handleOpenMenuSatrtClick.bind(this);
         this.finishGame = this.finishGame.bind(this);
 
-        this.getBoard = this.getBoard.bind(this);
+        this.getState = this.getState.bind(this);
 
 
         
     }
 
-    getBoard() {
-        fetch('/game/board', {method:'GET', credentials: 'include'})
+    getState() {
+        fetch('/game/state', {method:'GET', credentials: 'include'})
         .then(response => {return response.json()})
-        .then(logicBoard => this.setState({logicBoard}))
+        .then(state => 
+            this.setState({
+                logicBoard: state.logicBoard,
+                playerTiles: state.playerTiles
+            }))
 
-        this.timeoutId = setTimeout(this.getBoard, 200);
-    }
+        this.timeoutId = setTimeout(this.getState, 200);
+    } // getState
+
 
     componentDidMount() {
-        this.getBoard();
-    } // componenetDidMount
+        this.getState();
+    } // 
 
     componentWillUnmount() {
         clearTimeout(this.timeoutId);
@@ -297,12 +299,6 @@ class GameRoom extends Component {
         return moveValid;
     } // isMoveValid
 
-    updateLogicBoard(logicBoard) {
-        this.setState({
-            logicBoard
-        })
-    }
-
     handelUndoClcik(){
         this.handelPrevClick();
         this.statesArray.pop();
@@ -384,10 +380,7 @@ class GameRoom extends Component {
 
     deepClone(stateObj) {
         stateObj.selectedTile = undefined;
-        console.log(`in json stringy deep clone, stateObj is`)
-        console.log(stateObj);
         const stateStr = JSON.stringify(stateObj)
-        console.log(stateStr);
 
         return JSON.parse(stateStr);
     }
@@ -452,99 +445,53 @@ class GameRoom extends Component {
                     } // if
             } , 1000); 
         } // if
-
-
-        // if(curPotTiles.length === 1) {
-        //     // now it's gonna be empty: need to check if has more valid moves (otherwise loses)
-        //     if(this.hasNoMoreLegalMoves()) {
-        //         alert('player loses!');
-        //         this.setState({
-        //             isGameOver:true
-        //         })
-        //     }
-        // } // if
     } // takeFromPot
+    
+    tileWasPlaced(tile) { // "03"
 
-    componentDidUpdate(prevProps, prevState) {
 
-    }
-
-    shuffleTiles() {
-        let organized = this.createTiles();
-        let shuffled = [];
-
-        var a = [];
-        var b = [];
-
-        for (var i = 0; i < 28; i++)
-          a.push(i);
-        
-        for (a, i = a.length; i--; ) {
-          var random = a.splice(Math.floor(Math.random() * (i + 1)), 1)[0];
-          b.push(random)
-        }
-
-        for(let i = 0; i <=27; i++) {
-            shuffled[b[i]] = organized[i];
-        }
-
-        return shuffled;
-    } // shuffleTiles
-
-    tileWasPlaced(tile) {
-        this.statesArray.push(this.deepClone(this.state));
         // 1. remove this Tile from "player tyles" (once you setThis state, the props to the Player will changed)
         this.setState(prevState => {
-            const playerTiles = prevState.playerTiles;
-            playerTiles.splice(playerTiles.indexOf(tile), 1);
             return {
                 selectedTile:null,
-                playerTiles,
-                totalTurns: prevState.totalTurns + 1,
-                avgTimePerTurn: (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
-                score : this.getScoreFromTiles(this.state.playerTiles),
-                currentStateIndex: prevState.currentStateIndex  + 1,
-             //   prevTurn : turns1
-                
+                // toServer
+                // totalTurns: prevState.totalTurns + 1,
+                // avgTimePerTurn: (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
+                // score: this.getScoreFromTiles(this.state.playerTiles),
             }
         });
 
+
+
     
-                if(this.state.potTiles.length === 0) {
-                    window.setTimeout(() => {
-                    if(!this.state.isGameOver && this.hasNoMoreLegalMoves()) {
-                        alert('player loses!')
-                        this.setState({
-                            isGameOver:true
-                        })
-                    } // if
-            } , 1000); 
-        } // if
+        // toServer
+        //         if(this.state.potTiles.length === 0) {
+        //             window.setTimeout(() => {
+        //             if(!this.state.isGameOver && this.hasNoMoreLegalMoves()) {
+        //                 alert('player loses!')
+        //                 this.setState({
+        //                     isGameOver:true
+        //                 })
+        //             } // if
+        //     } , 1000); 
+        // } // if
         
-        if(this.state.playerTiles.length - 1 === parseInt('0'))
-        {
-            this.setState({
-                isGameOver: true,
-                win:true,
-                isLastTile: true
-            })
-            for(let i = 0; i < this.statesArray.length; i++)
-            {
-                this.statesArray[i].isGameOver = true;
-                this.statesArray[i].win = true;
-            }
-        }
+        // if(this.state.playerTiles.length - 1 === parseInt('0'))
+        // {
+        //     this.setState({
+        //         isGameOver: true,
+        //         win:true,
+        //         isLastTile: true
+        //     })
+        //     for(let i = 0; i < this.statesArray.length; i++)
+        //     {
+        //         this.statesArray[i].isGameOver = true;
+        //         this.statesArray[i].win = true;
+        //     }
+        // }
     } // tileWasPlaced
 
-    createTiles() {
-        let res = [];
-        for(let i = 0; i <= 6; i++) 
-            for(let j = 0; j <= 6; j++) 
-                if(j >= i) 
-                    res.push(`${i}${j}`);
-                
-        return res;
-    }
+    
 
     finishGame()
     {
@@ -631,17 +578,19 @@ class GameRoom extends Component {
                     avgTimePerTurn={this.state.avgTimePerTurn}
                     score = {this.state.score}
                     />
-                    
+
+
+                 {/* {this.state.logicBoard === undefined ? null : */}
                 <Board 
                     selectedTile={this.state.selectedTile}
                     tileWasPlaced={this.tileWasPlaced}
-                    updateLogicBoard={this.updateLogicBoard}
                     logicBoard={this.state.logicBoard}
                     isMoveValid={this.isMoveValid}       
                     isGameOver={this.state.isGameOver}
-                    win={this.state.win}       
-
+                    win={this.state.win}
                 />
+                {/* } */}
+
                 <Player 
                     tiles={this.state.playerTiles}
                     tileSelected={this.tileSelected}

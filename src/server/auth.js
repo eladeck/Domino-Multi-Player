@@ -1,8 +1,8 @@
 const userList = {}; // auth holds the users list, pairs of {sessioId, userName}
 
 function userAuthentication(req, res, next) {		
-	console.log(`userList is`);
-	console.log(userList);
+	// console.log(`userList is`);
+	// console.log(userList);
 
 	if (userList[req.session.id] === undefined) { // means this sessionId is not in the system yet				
 		res.sendStatus(401); // therefore we decline with 401 "user does not exist"		
