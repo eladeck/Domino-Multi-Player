@@ -61,7 +61,7 @@ class GameRoom extends Component {
         this.hasNoMoreLegalMoves = this.hasNoMoreLegalMoves.bind(this);
         
         this.handleStartClick = this.handleStartClick.bind(this);
-        this.getScoreFromTiles = this.getScoreFromTiles.bind(this);
+        // this.getScoreFromTiles = this.getScoreFromTiles.bind(this);
         this.deepClone = this.deepClone.bind(this);
 
 
@@ -84,9 +84,11 @@ class GameRoom extends Component {
                 logicBoard: state.logicBoard,
                 playerTiles: state.playerTiles,
                 mineUniqueId: state.yourUniqueId,
-                activePlayer: state.activePlayer
+                activePlayer: state.activePlayer,
+                score: state.yourScore,
+                
             }))
-
+        
         this.timeoutId = setTimeout(this.getState, 200);
     } // getState
 
@@ -336,14 +338,14 @@ class GameRoom extends Component {
         return JSON.parse(stateStr);
     }
 
-    getScoreFromTiles(playerTiles){
+    // getScoreFromTiles(playerTiles){
      
-        let res = 0;
-        for(let i = 0 ; i < playerTiles.length; i++)
-            res += parseInt((playerTiles[i])[0]) + parseInt((playerTiles[i])[1]);
+    //     let res = 0;
+    //     for(let i = 0 ; i < playerTiles.length; i++)
+    //         res += parseInt((playerTiles[i])[0]) + parseInt((playerTiles[i])[1]);
 
-        return res;
-    }
+    //     return res;
+    // }
 
     handleStartClick() {
         this.incrementer = setInterval(() => {

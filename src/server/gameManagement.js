@@ -24,13 +24,33 @@ const state = new State(); // the main instance of the state (of the gameState)
 
 function createPlayerStatsArray()
 {
-    
+    console.log("createPlayerStatsArray")
+     let arr = [];
+     for(let i = 0; i < numOfPlayers; i++)
+     {
+         let obj = {totalTurns: 0,
+                    totalPot: 0,
+                    avgTimePerTurn: 0,
+                    score:0,};
+        arr.push(obj);
+     }
+     return arr;
+}
+
+function getScoreFromTiles(playerTiles){
+     
+    let res = 0;
+    for(let i = 0 ; i < playerTiles.length; i++)
+        res += parseInt((playerTiles[i])[0]) + parseInt((playerTiles[i])[1]);
+
+    return res;
 }
 
 function createPlayersTiles(shuffledTiles) {
     let playersTiles = [shuffledTiles.slice(0, 6), shuffledTiles.slice(6, 12)];
     if(numOfPlayers === 3) {
-        playersTiles.push(shuffleTiles(slice(12, 18)))
+    let playersTiles = [shuffledTiles.slice(0, 6), shuffledTiles.slice(6, 12)];
+        playersTiles.push(shuffledTiles.slice(12, 18))
     } // if (numOfPlayers === 3)
 
     return playersTiles;
@@ -82,7 +102,7 @@ function buildBoard() {
 /**************************** request handling ***************************************************/
 gameManagement.get('/state', auth.userAuthentication, (req, res) => { // 'get the whole board'
 
-    console.log(playersSessionIds)
+   // console.log(playersSessionIds)
     if(playersSessionIds[0] === undefined) // enter the first player id
          playersSessionIds[0] = req.session.id;
     if(playersSessionIds[1] === undefined && req.session.id !== playersSessionIds[0]) // // enter the second player id
@@ -90,11 +110,21 @@ gameManagement.get('/state', auth.userAuthentication, (req, res) => { // 'get th
     if(playersSessionIds[2] === undefined && req.session.id !== playersSessionIds[0] && req.session.id !== playersSessionIds[1]) // // enter the third player id
         playersSessionIds[2] = req.session.id;
 
+    if(state.playersStats !== undefined) // calc the score of the players 
+    {
+        for(let i = 0; i < numOfPlayers; i++)
+        {
+           state.playersStats[i].score = getScoreFromTiles(state.playersTiles[i])
+        }
+
+    }
+    console.log(state.playersStats[playersSessionIds.indexOf(req.session.id)].score)
     res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
         logicBoard: state.logicBoard,
         playerTiles: state.playersTiles[playersSessionIds.indexOf(req.session.id)], 
         yourUniqueId: playersSessionIds.indexOf(req.session.id), // number 0, 1 or 2 
-        activePlayer: state.activePlayer
+        activePlayer: state.activePlayer,
+        yourScore: state.playersStats[playersSessionIds.indexOf(req.session.id)].score,
     });
 });
 
@@ -129,9 +159,9 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
 
 gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
-    console.log("in here" + state.potTiles.length);
+    //console.log("in here" + state.potTiles.length);
 
-    //console.log(state);
+    console.log(state.playersStats);
 
 
     if(state.potTiles.length === 0) {
