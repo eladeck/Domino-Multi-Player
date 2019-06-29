@@ -5,7 +5,7 @@ const gameManagement = express.Router(); // router is like a 'mini-app'...
 
 /******************************* business logic of the game ******************************************************/
 const boardSize = 58;
-const numOfPlayers = 2; // future: get it dynamicly from lobby (2 or 3!) 
+const numOfPlayers = 3; // future: get it dynamicly from lobby (2 or 3!) 
 
 // playersSessionIds = []; 
 
@@ -22,6 +22,7 @@ let State = function() {
     this.isGameOver = false;
     this.howManyPlayersAreReady = '';
     this.shouldGameStart = false;
+
 
     //Clock
     this.incrementer = null;
@@ -54,6 +55,7 @@ function createPlayersInfo() {
         let player = {
             name: '',
             sessionId: '',
+            playerTime: 0,
             stats: {
                 totalTurns: 0,
                 totalPot: 0,
@@ -163,6 +165,22 @@ function extractPlayerUniqueId(id) {
     return 'err';
 } // extractPlayerUniqueId
 
+function calcPlayerSeconds()
+{
+    if(numOfPlayers === 3) // the time is the total time minus the other users times.
+    {
+        state.playersInfo[state.activePlayer].playerTime = state.playersInfo[state.activePlayer].playerTime 
+         + state.secondsElapsed - state.playersInfo[(state.activePlayer + 1 ) % numOfPlayers].playerTime
+          - state.playersInfo[(state.activePlayer + 2 ) % numOfPlayers].playerTime 
+    }
+    if(numOfPlayers === 2)
+    {
+        state.playersInfo[state.activePlayer].playerTime = state.playersInfo[state.activePlayer].playerTime 
+         + state.secondsElapsed - state.playersInfo[(state.activePlayer + 1 ) % numOfPlayers].playerTime
+    }
+                                                
+}
+
 /******************************* request handling ***************************************************/
 // gameManagement.get('/state',auth.userAuthentication, (req, res) => {
 gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק 
@@ -206,6 +224,12 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
     
     // 3. score and stuff...
     calculatePlayersScore();
+    calcPlayerSeconds();
+
+    state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
+    state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
+    state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
+    
 
     // 4. switch turn...
     state.activePlayer = (state.activePlayer + 1) % numOfPlayers;
@@ -230,14 +254,18 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
         // after taking from the pot, we should re-calc the player score
         calculatePlayersScore();
+        calcPlayerSeconds();
+        state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
+        state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
+
+        state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
+       
+     //   : (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
 
         /////////////////////////////////
 
         // need to deal with this as well!
 
-        // totalTurns: prevState.totalTurns + 1,
-        // totalPot: prevState.totalPot + 1,
-        // avgTimePerTurn: (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
         // score : this.getScoreFromTiles(this.state.playerTiles),
         // currentStateIndex: prevState.currentStateIndex  + 1,
 
