@@ -7,9 +7,10 @@ const gameManagement = express.Router(); // router is like a 'mini-app'...
 const boardSize = 58;
 const numOfPlayers = 2; // future: get it dynamicly from lobby (2 or 3!) 
 
-playersSessionIds = [];
+// playersSessionIds = []; 
 
 let State = function() {
+
     this.boardSize = boardSize;
     this.logicBoard = buildBoard();
     this.shuffledTiles = shuffleTiles();
@@ -17,25 +18,56 @@ let State = function() {
     this.potTiles = this.shuffledTiles.slice(6 * numOfPlayers, 28);
     this.playersTiles = createPlayersTiles(this.shuffledTiles);
     this.activePlayer = 0; // 0 -> 1 -> 2 -> (3?) -> 0 ... (activePlayer + 1) % numOfPlayers
-    this.playersStats = createPlayerStatsArray();
+    this.isGameStarted = true;
+    this.isGameOver = false;
+    this.howManyPlayersAreReady = '';
+    this.shouldGameStart = false;
+
+    //Clock
+    this.incrementer = null;
+    this.secondsElapsed = 0;
+
+    this.playersInfo = createPlayersInfo();
+
+
+
 } // State c'tor
 
 const state = new State(); // the main instance of the state (of the gameState)
+calculatePlayersScore();
+// startGameLogics();
 
-function createPlayerStatsArray()
-{
-    console.log("createPlayerStatsArray")
-     let arr = [];
-     for(let i = 0; i < numOfPlayers; i++)
-     {
-         let obj = {totalTurns: 0,
-                    totalPot: 0,
-                    avgTimePerTurn: 0,
-                    score:0,};
-        arr.push(obj);
-     }
-     return arr;
-}
+function startGameLogics() {
+    this.incrementer = setInterval(() => 
+            state.secondsElapsed = state.secondsElapsed + 1 ,1000 /*ms*/);
+
+    state.shouldGameStart = true;
+} // startGameLogics
+
+function finishGameLogics() {
+    clearInterval(state.incrementer);
+} // finishGameLogics
+
+function createPlayersInfo() {
+    let playersInfo = [];
+    for(let i = 0; i < numOfPlayers; i++) {
+        let player = {
+            name: '',
+            sessionId: '',
+            stats: {
+                totalTurns: 0,
+                totalPot: 0,
+                avgTimePerTurn: 0,
+                score: 0,
+            } // player stats
+        }; // player
+
+        playersInfo[i] = player;
+    } // for
+
+    return playersInfo;
+} // createPlayersInfo
+
 
 function getScoreFromTiles(playerTiles){
      
@@ -49,7 +81,6 @@ function getScoreFromTiles(playerTiles){
 function createPlayersTiles(shuffledTiles) {
     let playersTiles = [shuffledTiles.slice(0, 6), shuffledTiles.slice(6, 12)];
     if(numOfPlayers === 3) {
-    let playersTiles = [shuffledTiles.slice(0, 6), shuffledTiles.slice(6, 12)];
         playersTiles.push(shuffledTiles.slice(12, 18))
     } // if (numOfPlayers === 3)
 
@@ -97,34 +128,59 @@ function buildBoard() {
     return board;
 } // buildBoard
 
-
-
-/**************************** request handling ***************************************************/
-gameManagement.get('/state', auth.userAuthentication, (req, res) => { // 'get the whole board'
-
-   // console.log(playersSessionIds)
-    if(playersSessionIds[0] === undefined) // enter the first player id
-         playersSessionIds[0] = req.session.id;
-    if(playersSessionIds[1] === undefined && req.session.id !== playersSessionIds[0]) // // enter the second player id
-        playersSessionIds[1] = req.session.id;
-    if(playersSessionIds[2] === undefined && req.session.id !== playersSessionIds[0] && req.session.id !== playersSessionIds[1]) // // enter the third player id
-        playersSessionIds[2] = req.session.id;
-
-    if(state.playersStats !== undefined) // calc the score of the players 
-    {
-        for(let i = 0; i < numOfPlayers; i++)
-        {
-           state.playersStats[i].score = getScoreFromTiles(state.playersTiles[i])
-        }
-
+function fillPlayersSessionIds(id) {
+    if(state.playersInfo[0].sessionId === '') {
+        state.playersInfo[0].sessionId = id;
+        state.howManyPlayersAreReady = `1/${numOfPlayers}`;
     }
-    console.log(state.playersStats[playersSessionIds.indexOf(req.session.id)].score)
+    if(state.playersInfo[1].sessionId === '' && id !== state.playersInfo[0].sessionId) {
+        state.playersInfo[1].sessionId = id;
+        state.howManyPlayersAreReady = `2/${numOfPlayers}`;
+    }
+    if(state.playersInfo[2] && state.playersInfo[2].sessionId === '' && id !== state.playersInfo[0].sessionId && id !== state.playersInfo[1].sessionId) {
+        state.playersInfo[2].sessionId = id;
+        state.howManyPlayersAreReady = `3/${numOfPlayers}`;
+    }
+
+    // start game! numOfplayers === 2 && 2 taim => tathil
+    if(((numOfPlayers === 2 && state.playersInfo[1].sessionId !== '') ||
+       (numOfPlayers === 3 && state.playersInfo[2].sessionId !== '')) &&
+       !state.shouldGameStart) {
+           startGameLogics();
+       }  // if
+} // fillPlayersSessionIds
+
+function calculatePlayersScore() {
+    for(let i = 0; i < numOfPlayers; i++) {
+        state.playersInfo[i].stats.score = getScoreFromTiles(state.playersTiles[i])
+    } // for
+} // calculatePlayersScore
+
+function extractPlayerUniqueId(id) {
+    for(let i = 0; i < numOfPlayers; i++)
+        if(state.playersInfo[i].sessionId === id)
+            return i;
+    return 'err';
+} // extractPlayerUniqueId
+
+/******************************* request handling ***************************************************/
+// gameManagement.get('/state',auth.userAuthentication, (req, res) => {
+gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק 
+
+   fillPlayersSessionIds(req.session.id);
+
+   const playerUniqueId = extractPlayerUniqueId(req.session.id);
+   if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
+ 
     res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
         logicBoard: state.logicBoard,
-        playerTiles: state.playersTiles[playersSessionIds.indexOf(req.session.id)], 
-        yourUniqueId: playersSessionIds.indexOf(req.session.id), // number 0, 1 or 2 
+        playerTiles: state.playersTiles[playerUniqueId],
+        yourUniqueId: playerUniqueId,
         activePlayer: state.activePlayer,
-        yourScore: state.playersStats[playersSessionIds.indexOf(req.session.id)].score,
+        secondsElapsed: state.secondsElapsed,
+        stats: state.playersInfo[playerUniqueId].stats,
+        howManyPlayersAreReady: state.howManyPlayersAreReady,
+        shouldGameStart: state.shouldGameStart,
     });
 });
 
@@ -147,9 +203,9 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
     // 2. the active player tiles should be shorter... 
     activePlayerTiles = state.playersTiles[state.activePlayer];
     activePlayerTiles.splice(activePlayerTiles.indexOf(tile), 1);
-
-
+    
     // 3. score and stuff...
+    calculatePlayersScore();
 
     // 4. switch turn...
     state.activePlayer = (state.activePlayer + 1) % numOfPlayers;
@@ -159,18 +215,10 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
 
 gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
-    //console.log("in here" + state.potTiles.length);
-
-    console.log(state.playersStats);
-
-
-    if(state.potTiles.length === 0) {
+    if(state.potTiles.length === 0) { // gonna be an error
            console.log ("Pot is empty")
-            //there is no alert in the server 
-            //we need to allert the client 
-    }
-    else
-    {
+           res.status(403).send('pot is empty!');
+    } else { // gonna be good
         const oldPotTiles = state.potTiles;
         const oldPlayerTiles = state.playersTiles[state.activePlayer];
         //this.statesArray.push(this.deepClone(this.state));
@@ -179,6 +227,9 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
         state.potTiles = oldPotTiles;
         state.playersTiles[state.activePlayer] = oldPlayerTiles;
+
+        // after taking from the pot, we should re-calc the player score
+        calculatePlayersScore();
 
         /////////////////////////////////
 
@@ -201,14 +252,12 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
         //         } , 1000); 
         //     } // if
 
+        state.activePlayer = (state.activePlayer + 1) % numOfPlayers
+        res.sendStatus(200);
+    } // else
+    
 
-   }
-   
-   state.activePlayer = (state.activePlayer + 1) % numOfPlayers
-   res.sendStatus(200);
-
-
-});
+}); // POST.'/pot' handling
 
 
 
