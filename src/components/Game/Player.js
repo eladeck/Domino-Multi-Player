@@ -15,7 +15,7 @@ class Player extends Component {
 
   
   handleClick(event) {
-    if(this.props.isGameOver)
+    if(this.props.isGameOver || !this.props.isMyTurn)
       return;
 
     const tile = event.target.closest('div');

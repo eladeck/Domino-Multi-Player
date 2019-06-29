@@ -17,7 +17,7 @@ class GameRoom extends Component {
     constructor(props) {
         super(props);
         this.statesArray = [];
-        this.isLastTileWasFlaced = false;
+        this.isLastTileWasPlaced = false;
         // const shuffledTiles = this.shuffleTiles();
         // const firstSix = shuffledTiles.slice(0, 6);
         this.boardSize = 58; // some extra room so we don't get to the edges!
@@ -34,6 +34,8 @@ class GameRoom extends Component {
             playerTiles:null, 
             selectedTile:null, // an ID!!!!!!!!! NOT a ref to DOM element!!
             logicBoard:null,
+            mineUniqueId:null,
+            activePlayer:null,
 
             //stats
             incrementer: null,
@@ -44,7 +46,7 @@ class GameRoom extends Component {
             score:0,
             prevTurn: null,
             currentStateIndex: 0,
-            isGameStated: false,
+            isGameStarted: false,
             isGameOver: false,
             win: false,
             isLastTile: false,
@@ -80,7 +82,9 @@ class GameRoom extends Component {
         .then(state => 
             this.setState({
                 logicBoard: state.logicBoard,
-                playerTiles: state.playerTiles
+                playerTiles: state.playerTiles,
+                mineUniqueId: state.yourUniqueId,
+                activePlayer: state.activePlayer
             }))
 
         this.timeoutId = setTimeout(this.getState, 200);
@@ -306,7 +310,7 @@ class GameRoom extends Component {
 
     handleOpenMenuSatrtClick()
     {
-        this.setState({isGameStated : true});
+        this.setState({isGameStarted : true});
     }
 
     handelPrevClick(){
@@ -451,7 +455,7 @@ class GameRoom extends Component {
         const r = window.confirm("Do you want to play a new game? sure?");
          if(r == true)
           {
-            this.isLastTileWasFlaced = false;
+            this.isLastTileWasPlaced = false;
             this.shuffledTiles = this.shuffleTiles();
             this.firstSix = this.shuffledTiles.slice(0, 6);
             this.statesArray = [];
@@ -472,7 +476,7 @@ class GameRoom extends Component {
                     score: this.getScoreFromTiles(this.firstSix),
                     prevTurn: null,
                     currentStateIndex: 0,
-                    isGameStated: true,
+                    isGameStarted: true,
                     isGameOver: false,
                     win: false,
                     isLastTile: false,
@@ -483,17 +487,18 @@ class GameRoom extends Component {
     }
     
     render() {
+        let isMyTurn = this.state.activePlayer === this.state.mineUniqueId;
         
         window.state = this.state;
-        if(this.state.isLastTile && this.isLastTileWasFlaced === false)  // push the last move to the array 
+        if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
         {
-            this.isLastTileWasFlaced = true;
+            this.isLastTileWasPlaced = true;
             this.setState({isLastTile: false})
             this.statesArray.push(this.deepClone(this.state));
             clearInterval(this.state.incrementer);
 
         }
-        if(this.state.isTimeStarted === false && this.state.isGameStated === true)  // start the time only once 
+        if(this.state.isTimeStarted === false && this.state.isGameStarted === true)  // start the time only once 
         {
             this.handleStartClick();
             this.setState({isTimeStarted: true});
@@ -509,13 +514,13 @@ class GameRoom extends Component {
             <button onClick={() => this.props.switchScreen('lobby')}>
                      go to lobby!
             </button>
-            
-            {this.state.isGameStated ? ( <div><br></br>
+            {this.state.isGameStarted ? ( <div><br></br>
             <br></br>
+            <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
             <div>{this.state.isGameOver ? (<h1>{this.state.win ? 'you won' : 'no moves-lost!'}</h1>) : null}</div>
              <h2>{formatSeconds(this.state.secondsElapsed)}</h2>
              {/* <div>{this.state.isGameOver ? (null) :<button className="btnStyle" onClick={this.handleStartClick}>start</button>}</div> */}
-             <div>{this.state.isGameOver ? (null) : <button className="btnStyle" onClick={this.takeTileFromPot}>Pot</button>}</div>
+             <div>{this.state.isGameOver ? (null) : <button disabled={!isMyTurn} className="btnStyle" onClick={this.takeTileFromPot}>Pot</button>}</div>
              <br></br>
              <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.handelPrevClick}>back!</button>) : (null)}</div>
              <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.handelNextClick}>next!</button>) : (null)}</div>
@@ -549,6 +554,7 @@ class GameRoom extends Component {
                     handleSelected={this.handleSelected}
                     selectedTile={this.state.selectedTile}
                     isGameOver={this.state.isGameOver}             
+                    isMyTurn={isMyTurn}
                 /></div>) : 
                 ( 
                     <div>

@@ -82,7 +82,6 @@ function buildBoard() {
 /**************************** request handling ***************************************************/
 gameManagement.get('/state', auth.userAuthentication, (req, res) => { // 'get the whole board'
 
-    // toDelete
     console.log(playersSessionIds)
     if(playersSessionIds[0] === undefined) // enter the first player id
          playersSessionIds[0] = req.session.id;
@@ -91,9 +90,11 @@ gameManagement.get('/state', auth.userAuthentication, (req, res) => { // 'get th
     if(playersSessionIds[2] === undefined && req.session.id !== playersSessionIds[0] && req.session.id !== playersSessionIds[1]) // // enter the third player id
         playersSessionIds[2] = req.session.id;
 
-    res.send({
+    res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
         logicBoard: state.logicBoard,
-        playerTiles: state.playersTiles[playersSessionIds.indexOf(req.session.id)],
+        playerTiles: state.playersTiles[playersSessionIds.indexOf(req.session.id)], 
+        yourUniqueId: playersSessionIds.indexOf(req.session.id), // number 0, 1 or 2 
+        activePlayer: state.activePlayer
     });
 });
 
