@@ -90,6 +90,8 @@ class Board extends Component {
                     // 1. notyfing the sever that we made a move (we already checked that it is legal)
                     fetch(`/game/move?i=${i}&j=${j}&selectedTile=${this.props.selectedTile}&verticality=${document.getElementById(this.props.selectedTile).parentNode.id[11]}`,
                     {method:'POST', credentials: 'include'})
+                    .then(res => res.json())
+                    .then(theRealResObj => {console.log(`I made 'POST' to \move, got back:`); console.log(theRealResObj);})
 
                     // 2.
                     this.props.tileWasPlaced(this.props.selectedTile);

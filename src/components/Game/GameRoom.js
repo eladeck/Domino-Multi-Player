@@ -25,10 +25,12 @@ class GameRoom extends Component {
             playerTiles:null, 
             selectedTile:null, // an ID!!!!!!!!! NOT a ref to DOM element!!
             logicBoard:null,
-            mineUniqueId:null,
+            mineUniqueId:null, // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
             activePlayer:null,
             howManyPlayersAreReady:null, // gonna be a string like "1/3" or "2/2"
             shouldGameStart:false, // server will let us know once game should start
+            isGameOver:false, 
+            youWon:false, 
 
 
             //stats
@@ -69,12 +71,14 @@ class GameRoom extends Component {
             this.setState({
                 logicBoard: state.logicBoard,
                 playerTiles: state.playerTiles,
-                mineUniqueId: state.yourUniqueId,
+                mineUniqueId: state.yourUniqueId, // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
                 activePlayer: state.activePlayer,
                 secondsElapsed: state.secondsElapsed,
                 stats: state.stats,
                 howManyPlayersAreReady:state.howManyPlayersAreReady, 
                 shouldGameStart:state.shouldGameStart, 
+                isGameOver: state.isGameOver,
+                youWon:state.youWon, 
             }))
         
         this.timeoutId = setTimeout(this.getState, 200);
@@ -457,24 +461,20 @@ class GameRoom extends Component {
     }
     
     render() {
-        let isMyTurn = this.state.activePlayer === this.state.mineUniqueId;
+        let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
         
         window.state = this.state;
-        if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
-        {
-            this.isLastTileWasPlaced = true;
-            this.setState({isLastTile: false})
-            this.statesArray.push(this.deepClone(this.state));
+        // if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
+        // {
+        //     this.isLastTileWasPlaced = true;
+        //     this.setState({isLastTile: false})
+        //     this.statesArray.push(this.deepClone(this.state));
 
-        }
-        if(this.state.isTimeStarted === false && this.state.isGameStarted === true)  // start the time only once 
-        {
-            this.setState({isTimeStarted: true});
-        }
-            
-        
-        window.playerTiles = this.state.playerTiles;
-        
+        // }
+        // if(this.state.isTimeStarted === false && this.state.isGameStarted === true)  // start the time only once 
+        // {
+        //     this.setState({isTimeStarted: true});
+        // }
         return (
             
             <div>
@@ -485,7 +485,7 @@ class GameRoom extends Component {
             {this.state.shouldGameStart ? ( <div><br></br>
             <br></br>
             <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
-            <div>{this.state.isGameOver ? (<h1>{this.state.win ? 'you won' : 'no moves-lost!'}</h1>) : null}</div>
+            <div>{this.state.isGameOver ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can till play." : null}</h1>)}</div>
             <h2>{formatSeconds(this.state.secondsElapsed)}</h2>
              {/* <div>{this.state.isGameOver ? (null) :<button className="btnStyle" onClick={this.handleStartClick}>start</button>}</div> */}
              <div>{this.state.isGameOver ? (null) : <button disabled={!isMyTurn} className="btnStyle" onClick={this.takeTileFromPot}>Pot</button>}</div>

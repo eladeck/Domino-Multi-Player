@@ -18,17 +18,18 @@ let State = function() {
     this.potTiles = this.shuffledTiles.slice(6 * numOfPlayers, 28);
     this.playersTiles = createPlayersTiles(this.shuffledTiles);
     this.activePlayer = 0; // 0 -> 1 -> 2 -> (3?) -> 0 ... (activePlayer + 1) % numOfPlayers
-    this.isGameStarted = true;
-    this.isGameOver = false;
+    this.activePlayersArr = numOfPlayers === 2 ? [0, 1] : [0, 1, 2]
+    this.activePlayerIndex = 0;
     this.howManyPlayersAreReady = '';
-    this.shouldGameStart = false;
+    this.shouldGameStart = false; // maybe chagne name to: isGameOn?
+    this.isGameOver = false;
+    this.playersInfo = createPlayersInfo();
 
 
     //Clock
     this.incrementer = null;
     this.secondsElapsed = 0;
-
-    this.playersInfo = createPlayersInfo();
+    
 
 
 
@@ -56,12 +57,14 @@ function createPlayersInfo() {
             name: '',
             sessionId: '',
             playerTime: 0,
+            won: false,
             stats: {
                 totalTurns: 0,
                 totalPot: 0,
                 avgTimePerTurn: 0,
                 score: 0,
             } // player stats
+
         }; // player
 
         playersInfo[i] = player;
@@ -70,7 +73,6 @@ function createPlayersInfo() {
     return playersInfo;
 } // createPlayersInfo
 
-
 function getScoreFromTiles(playerTiles){
      
     let res = 0;
@@ -78,7 +80,7 @@ function getScoreFromTiles(playerTiles){
         res += parseInt((playerTiles[i])[0]) + parseInt((playerTiles[i])[1]);
 
     return res;
-}
+} // getScoreFromTiles
 
 function createPlayersTiles(shuffledTiles) {
     let playersTiles = [shuffledTiles.slice(0, 6), shuffledTiles.slice(6, 12)];
@@ -153,12 +155,15 @@ function fillPlayersSessionIds(id) {
 } // fillPlayersSessionIds
 
 function calculatePlayersScore() {
-    for(let i = 0; i < numOfPlayers; i++) {
-        state.playersInfo[i].stats.score = getScoreFromTiles(state.playersTiles[i])
+    // for(let i = 0; i < numOfPlayers; i++) {
+    //     state.playersInfo[i].stats.score = getScoreFromTiles(state.playersTiles[i])
+    for(let i = 0; i < state.activePlayersArr.length; i++) { 
+        // updating the score ONLY of the players that left in the game. activePlayerArr could look like [0,2] cause 1 has won
+        state.playersInfo[state.activePlayersArr[i]].stats.score = getScoreFromTiles(state.playersTiles[i])
     } // for
 } // calculatePlayersScore
 
-function extractPlayerUniqueId(id) {
+function extractPlayerUniqueId(id) { // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
     for(let i = 0; i < numOfPlayers; i++)
         if(state.playersInfo[i].sessionId === id)
             return i;
@@ -178,32 +183,65 @@ function calcPlayerSeconds()
         state.playersInfo[state.activePlayer].playerTime = state.playersInfo[state.activePlayer].playerTime 
          + state.secondsElapsed - state.playersInfo[(state.activePlayer + 1 ) % numOfPlayers].playerTime
     }
-                                                
-}
+} // calcPlayerSeconds
+
+function updateStats() {
+    state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
+    state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
+    state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
+} // updateStats
+
+function updateStatsAndCalcPlayerSeconds() {
+    calcPlayerSeconds();
+    updateStats();
+} // updateStats
+
+function activePlayerWinsLogics() {
+    state.activePlayersArr.splice(state.activePlayer, 1); // delete the 'activePlayer' in the arr
+    state.playersInfo[state.activePlayer].won = true; // mark activePlayer won to true in it's object
+    
+    if(state.activePlayersArr.length === 1) { // if only 1 player left... then:
+        state.isGameOver = true; // it's like: isGameOver = true;
+    } // else
+
+
+} // activePlayerWinsLogics
+
+function switchTurn() {
+    // state.activePlayer = (state.activePlayer + 1) % numOfPlayers; // for instacne: [0,1,2] => [0,2]
+    if(state.playersInfo[state.activePlayer].won === true) {
+        state.activePlayerIndex = state.activePlayerIndex % state.activePlayersArr.length; // no "+ 1", cause we spliced him from the array
+    } else {
+        state.activePlayerIndex = (state.activePlayerIndex + 1) % state.activePlayersArr.length; 
+    }
+
+    state.activePlayer = state.activePlayersArr[state.activePlayerIndex];
+} // switchTurn
 
 /******************************* request handling ***************************************************/
 // gameManagement.get('/state',auth.userAuthentication, (req, res) => {
-gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק 
+gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק אבל עכשיו זה מכניס לפה שחקנים שלא רשומים בסשן'ס ליסט. כן צריך את האות' של ספיבק שיסנן שחקנים שלא ביוזרס ליסט. צריך לחשוב זה מקרה קצה בתכל'ס. נראלי.
 
    fillPlayersSessionIds(req.session.id);
 
-   const playerUniqueId = extractPlayerUniqueId(req.session.id);
+   const playerUniqueId = extractPlayerUniqueId(req.session.id); // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
    if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
  
     res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
         logicBoard: state.logicBoard,
         playerTiles: state.playersTiles[playerUniqueId],
-        yourUniqueId: playerUniqueId,
+        yourUniqueId: playerUniqueId, // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
+        youWon: state.playersInfo[playerUniqueId].won,
         activePlayer: state.activePlayer,
         secondsElapsed: state.secondsElapsed,
         stats: state.playersInfo[playerUniqueId].stats,
         howManyPlayersAreReady: state.howManyPlayersAreReady,
+        isGameOver: state.isGameOver,
         shouldGameStart: state.shouldGameStart,
     });
 });
 
 gameManagement.post('/move', auth.userAuthentication, (req, res) => {
-    
     
     // update the state of the game: 
     let i = req.query.i;
@@ -211,12 +249,8 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
     let tile = req.query.selectedTile;
     let verticality = req.query.verticality;
 
-    console.log(`got a request to make a move, i,j are ${i},${j},
-    and tile is ${tile}`);
-
     // 1. the logic board should change
     state.logicBoard[i][j] = `${tile},${verticality}`; 
-
 
     // 2. the active player tiles should be shorter... 
     activePlayerTiles = state.playersTiles[state.activePlayer];
@@ -224,15 +258,15 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
     
     // 3. score and stuff...
     calculatePlayersScore();
-    calcPlayerSeconds();
+    updateStatsAndCalcPlayerSeconds();
 
-    state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
-    state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
-    state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
-    
+    if(activePlayerTiles.length === 0) {
+        activePlayerWinsLogics(res); // then activePlayerWins!
+    }
 
-    // 4. switch turn...
-    state.activePlayer = (state.activePlayer + 1) % numOfPlayers;
+    // switch turn...
+    switchTurn();
+
 
     res.sendStatus(200);
 });
@@ -280,7 +314,8 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
         //         } , 1000); 
         //     } // if
 
-        state.activePlayer = (state.activePlayer + 1) % numOfPlayers
+        switchTurn();
+
         res.sendStatus(200);
     } // else
     
