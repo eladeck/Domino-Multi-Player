@@ -9,7 +9,8 @@ export default class BaseContainer extends React.Component {
         super(...args);
         this.state = {
             screenToRender:'login',
-            // showLogin: true,
+            gameId:null,
+
             currentUser: {
                 name: ''
             }
@@ -20,12 +21,23 @@ export default class BaseContainer extends React.Component {
         this.fetchUserInfo = this.fetchUserInfo.bind(this);
         this.logoutHandler= this.logoutHandler.bind(this);
         this.switchScreen = this.switchScreen.bind(this);
+        this.handleNewGame = this.handleNewGame.bind(this);
         
-        // this.renderLobby = this.renderLobby.bind(this);
-        // this.renderGame = this.renderGame.bind(this);
-
         this.getUserName();
-    }
+    } // class c'tor
+
+    handleNewGame() { // im in the middle. should figure how to add req.body to the fetch, and then get the detials (gameName, numOfplayers) in the epxress, and use this data
+        let game = {};
+        game.gameName = prompt("enter game name");
+        game.numOfPlayers = prompt("enter number of players");
+
+        fetch('/game/createNewGame', {method:'POST', body:game, credentials:'include'})
+        .then(res => res.json())
+        .then(theRealRes => this.setState({gameId: theRealRes.gameId}));
+
+        // this.switchScreen('game');
+
+    } // handleNewGame
 
     render() {        
         if (this.state.screenToRender === 'login') {
@@ -35,9 +47,17 @@ export default class BaseContainer extends React.Component {
             return <Lobby
                         switchScreen={this.switchScreen}
                         logoutHandler={this.logoutHandler}
+                        handleNewGame={this.handleNewGame}
                     />; // must return jsx
-        } else { // render 'game'
-            return <GameRoom switchScreen={this.switchScreen}/> // must return jsx
+        } else {
+             // render 'game'
+            <GameRoom
+                switchScreen={this.switchScreen}
+                gameId={this.state.gameId}
+            />
+
+
+            return <div>error! screenToRedner is {this.state.screenToRender}, and must be either 'Lobby' or 'login'</div>
         } // else
 
         //for bonus: return this.renderChatRoom();

@@ -8,8 +8,8 @@ class Lobby extends Component {
         this.state = {
             userDetails:{}, // {name: 'elad', gameOwner:true}
             sessionId:null, // eskjfdlk90384@323SD
-            allGames:null,
-            allUsers:null,
+            allGames:{},
+            allUsers:{},
         } // state
 
         this.getState = this.getState.bind(this)
@@ -17,6 +17,8 @@ class Lobby extends Component {
         this.renderUsers = this.renderUsers.bind(this)
         this.isEmpty = this.isEmpty.bind(this)
     } // c'tor
+
+
 
     //some methods
     componentDidMount() {
@@ -65,15 +67,27 @@ class Lobby extends Component {
     } // renderUsers
 
     renderGames() {
-        if(!this.state.allGames) return;
+        let allGames = [];
+
+        for (var gameId in this.state.allGames) { // traversing the properties (sessionid are the keys!!)
+            const gameName = this.state.allGames[gameId].gameName; // 'name' is the value of the key 'sessionid'
+            const numOfPlayers = this.state.allGames[gameId].numOfPlayers; // 'name' is the value of the key 'sessionid'
+            const gameOwnerId = this.state.allGames[gameId].gameOwnerId; // 'name' is the value of the key 'sessionid'
+            allGames.push({gameId, gameName, numOfPlayers, gameOwnerId});
+        } // for
+
+
+
+        if(!allGames || allGames.length === 0) return;
 
             return (
                 <React.Fragment>
                     <h2>all Games:</h2>
-                    {this.state.allGames.map((game, index) =>
+                    {this.state.allGames.map((game) =>
                         <React.Fragment>
-                            <button onClick={() => this.props.switchScreen('game')}>
-                                go to game {index} 
+                            <button onClick={this.handleNewGame}>
+                                go to game {game.gameName} by {this.state.allUsers[game.gameOwnerId]}! 
+                                it requires {game.numOfPlayers} players. 
                             </button>
                             <br></br>
                         </React.Fragment>
@@ -89,7 +103,7 @@ class Lobby extends Component {
                     in Lobby! name is {this.state.userDetails.name} and session ID is {this.state.sessionId}
                 </h1>
 
-                <button onClick={this.createNewGame}>
+                <button onClick={this.props.handleNewGame}>
                      create new game
                 </button>
 
@@ -110,7 +124,7 @@ class Lobby extends Component {
             sessionId: state.sessionId,
             userDetails: state.userDetails,
             allGames: state.allGames,
-            allUsers: state.allUsers
+            allUsers: state.allUsers,
         }))
 
         this.timeoutId = setTimeout(this.getState, 200);

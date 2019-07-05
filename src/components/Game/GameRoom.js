@@ -65,7 +65,7 @@ class GameRoom extends Component {
     }
 
     getState() {
-        fetch('/game/state', {method:'GET', credentials: 'include'})
+        fetch(`/game/state?gameId=${this.props.gameId}`, {method:'GET', credentials: 'include'})
         .then(response => {return response.json()})
         .then(state => 
             this.setState({
@@ -346,7 +346,7 @@ class GameRoom extends Component {
         const curPotTiles = this.state.potTiles;
       
         // 1. notyfing the sever that we made a move (we already checked that it is legal)
-        fetch('/game/pot', {method:'POST', credentials: 'include'})
+        fetch(`/game/pot=gameId=${gameId}`, {method:'POST', credentials: 'include'})
         .then(res => {
             if(!res.ok) {
                 alert('there is problem: pot might be empty');

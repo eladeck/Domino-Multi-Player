@@ -3,13 +3,42 @@ const auth = require('./auth');
 
 const gameManagement = express.Router(); // router is like a 'mini-app'... 
 
+let allGames = {}; // pairs of {gameId : state}
+
+/********************************** */
+
+gameManagement.post('/createNewGame', (req, res) => {
+
+    let gameId = `${req.session.id}${req.body.gameName}`;
+
+    let newGame = new State(gameId,
+                            gameOwnerId = req.session.id,
+                            gameName = req.body.gameName,
+                            numOfPlayers = req.body.numOfPlayers);
+
+    allGames[`${req.session.id}${req.body.gameName}`] = newGame;
+
+    res.send({gameId}); // sending back to the client the gameId
+});
+
+
+
 /******************************* business logic of the game ******************************************************/
 const boardSize = 58;
-const numOfPlayers = 3; // future: get it dynamicly from lobby (2 or 3!) 
 
-// playersSessionIds = []; 
+// playersSessionIds = [];
 
-let State = function() {
+// gameId = `${req.session.id}${req.body.gameName}`,
+//                             gameOwnerId = req.session.id,
+//                             gameName = req.body.gameName,
+//                             numOfPlayers = req.body.numOfPlayers);
+
+let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
+
+    this.gameId = gameId;
+    this.numOfPlayers = numOfPlayers; // should change it all over the code, cause it was OUTSIDE of state
+    this.gameName = gameName; 
+    this.gameOwnerId = gameOwnerId;
 
     this.boardSize = boardSize;
     this.logicBoard = buildBoard();
@@ -32,11 +61,15 @@ let State = function() {
     
 
 
+    calculatePlayersScore();
 
 } // State c'tor
 
-const state = new State(); // the main instance of the state (of the gameState)
-calculatePlayersScore();
+// gameStates[gameId].playersTile
+
+// const states;
+//  = new State(); // the main instance of the state (of the gameState)
+
 // startGameLogics();
 
 function startGameLogics() {
@@ -155,6 +188,7 @@ function fillPlayersSessionIds(id) {
 } // fillPlayersSessionIds
 
 function calculatePlayersScore() {
+    console.log(`in calcu players`);
     // for(let i = 0; i < numOfPlayers; i++) {
     //     state.playersInfo[i].stats.score = getScoreFromTiles(state.playersTiles[i])
     for(let i = 0; i < state.activePlayersArr.length; i++) { 
@@ -221,6 +255,9 @@ function switchTurn() {
 /******************************* request handling ***************************************************/
 // gameManagement.get('/state',auth.userAuthentication, (req, res) => {
 gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק אבל עכשיו זה מכניס לפה שחקנים שלא רשומים בסשן'ס ליסט. כן צריך את האות' של ספיבק שיסנן שחקנים שלא ביוזרס ליסט. צריך לחשוב זה מקרה קצה בתכל'ס. נראלי.
+
+
+    let gameId = req.query.gameId;
 
    fillPlayersSessionIds(req.session.id);
 
@@ -338,4 +375,4 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
 
 
-module.exports = gameManagement
+module.exports = {gameManagement, allGames}
