@@ -1,4 +1,4 @@
-const userList = {}; // auth holds the users list, pairs of {sessioId, userName}
+const userList = {}; // pairs of {sessioId, userName}
 
 function userAuthentication(req, res, next) {		
 	// console.log(`userList is`);

@@ -224,6 +224,8 @@ gameManagement.get('/state', (req, res) => { // העפתי את הקוד של ש
 
    fillPlayersSessionIds(req.session.id);
 
+
+
    const playerUniqueId = extractPlayerUniqueId(req.session.id); // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
    if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
  
@@ -289,12 +291,25 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
         // after taking from the pot, we should re-calc the player score
         calculatePlayersScore();
         calcPlayerSeconds();
+
+        // update some Shay's stuff that we should bring out to a function!
         state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
         state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
-
         state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
-       
-     //   : (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
+
+        if(state.potTiles.length === 0) { // if now potTiles === 0, it means no more potTiles. if you don't have legal moves: game is over
+            var someCodeLine = 'some';
+            if(hasNoMoreLegalMoves()) {
+
+            } else {
+
+            }
+        } // if
+        
+        switchTurn();
+   
+        res.sendStatus(200);
+        //   : (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
 
         /////////////////////////////////
 
@@ -314,9 +329,6 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
         //         } , 1000); 
         //     } // if
 
-        switchTurn();
-
-        res.sendStatus(200);
     } // else
     
 

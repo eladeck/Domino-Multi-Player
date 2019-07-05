@@ -32,7 +32,10 @@ export default class BaseContainer extends React.Component {
             return (<LoginModal loginSuccessHandler={this.handleSuccessedLogin} loginErrorHandler={this.handleLoginError}/>)
         } else if(this.state.screenToRender === 'lobby') { // no need to show login
             console.log(`should go to lobby`)
-            return <Lobby switchScreen={this.switchScreen}/>; // must return jsx
+            return <Lobby
+                        switchScreen={this.switchScreen}
+                        logoutHandler={this.logoutHandler}
+                    />; // must return jsx
         } else { // render 'game'
             return <GameRoom switchScreen={this.switchScreen}/> // must return jsx
         } // else
@@ -109,5 +112,5 @@ export default class BaseContainer extends React.Component {
             }
             this.setState(()=>({currentUser: {name:''}, screenToRender: 'login'}));
         })
-    }
+    } // logoutHandler
 }
