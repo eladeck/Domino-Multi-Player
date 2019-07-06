@@ -12,7 +12,7 @@ gameManagement.post('/createNewGame', (req, res) => {
     console.log(`server just got request to open a new game with req.body.gameName of ${req.body.gameName}`)
     console.log(req.body.numOfPlayers)
 
-    let gameId = `${req.session.id}${req.body.gameName}`;
+    let gameId = `${req.session.id},${req.body.gameName}`;
 
     let newGame = new State(gameId,
                             gameOwnerId = req.session.id,

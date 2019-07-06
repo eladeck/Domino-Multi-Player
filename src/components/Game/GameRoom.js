@@ -495,7 +495,7 @@ class GameRoom extends Component {
              <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.finishGame}>New Game!</button>) : (null)}</div>
              <br></br>
             <div>{this.state.isGameOver ? (null) : <button className="btnStyle" onClick={this.handelUndoClcik}>undo!</button>}</div>
-
+            <h1 style={{top:"-14px", position:"fixed", left:"400px"}}>welcome to game {this.props.gameId.split(',')[1]}</h1>
 
                 <Statistics 
                     totalTurns = {this.state.stats.totalTurns}
