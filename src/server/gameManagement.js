@@ -8,6 +8,9 @@ let allGames = {}; // pairs of {gameId : state}
 /********************************** */
 
 gameManagement.post('/createNewGame', (req, res) => {
+    req.body = JSON.parse(req.body);
+    console.log(`server just got request to open a new game with req.body.gameName of ${req.body.gameName}`)
+    console.log(req.body.numOfPlayers)
 
     let gameId = `${req.session.id}${req.body.gameName}`;
 
@@ -16,7 +19,9 @@ gameManagement.post('/createNewGame', (req, res) => {
                             gameName = req.body.gameName,
                             numOfPlayers = req.body.numOfPlayers);
 
-    allGames[`${req.session.id}${req.body.gameName}`] = newGame;
+    allGames[gameId] = newGame;
+
+    calculatePlayersScore(gameId);
 
     res.send({gameId}); // sending back to the client the gameId
 });
@@ -61,7 +66,6 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
     
 
 
-    calculatePlayersScore();
 
 } // State c'tor
 
@@ -72,15 +76,15 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
 
 // startGameLogics();
 
-function startGameLogics() {
+function startGameLogics(gameId) {
     this.incrementer = setInterval(() => 
-            state.secondsElapsed = state.secondsElapsed + 1 ,1000 /*ms*/);
+            allGames[gameId].secondsElapsed = allGames[gameId].secondsElapsed + 1 ,1000 /*ms*/);
 
-    state.shouldGameStart = true;
+    allGames[gameId].shouldGameStart = true;
 } // startGameLogics
 
-function finishGameLogics() {
-    clearInterval(state.incrementer);
+function finishGameLogics(gameId) {
+    clearInterval(allGames[gameId].incrementer);
 } // finishGameLogics
 
 function createPlayersInfo() {
@@ -165,91 +169,91 @@ function buildBoard() {
     return board;
 } // buildBoard
 
-function fillPlayersSessionIds(id) {
-    if(state.playersInfo[0].sessionId === '') {
-        state.playersInfo[0].sessionId = id;
-        state.howManyPlayersAreReady = `1/${numOfPlayers}`;
+function fillPlayersSessionIds(id, gameId) {
+    if(allGames[gameId].playersInfo[0].sessionId === '') {
+        allGames[gameId].playersInfo[0].sessionId = id;
+        allGames[gameId].howManyPlayersAreReady = `1/${numOfPlayers}`;
     }
-    if(state.playersInfo[1].sessionId === '' && id !== state.playersInfo[0].sessionId) {
-        state.playersInfo[1].sessionId = id;
-        state.howManyPlayersAreReady = `2/${numOfPlayers}`;
+    if(allGames[gameId].playersInfo[1].sessionId === '' && id !== allGames[gameId].playersInfo[0].sessionId) {
+        allGames[gameId].playersInfo[1].sessionId = id;
+        allGames[gameId].howManyPlayersAreReady = `2/${numOfPlayers}`;
     }
-    if(state.playersInfo[2] && state.playersInfo[2].sessionId === '' && id !== state.playersInfo[0].sessionId && id !== state.playersInfo[1].sessionId) {
-        state.playersInfo[2].sessionId = id;
-        state.howManyPlayersAreReady = `3/${numOfPlayers}`;
+    if(allGames[gameId].playersInfo[2] && allGames[gameId].playersInfo[2].sessionId === '' && id !== allGames[gameId].playersInfo[0].sessionId && id !== allGames[gameId].playersInfo[1].sessionId) {
+        allGames[gameId].playersInfo[2].sessionId = id;
+        allGames[gameId].howManyPlayersAreReady = `3/${numOfPlayers}`;
     }
 
     // start game! numOfplayers === 2 && 2 taim => tathil
-    if(((numOfPlayers === 2 && state.playersInfo[1].sessionId !== '') ||
-       (numOfPlayers === 3 && state.playersInfo[2].sessionId !== '')) &&
-       !state.shouldGameStart) {
-           startGameLogics();
+    if(((numOfPlayers === 2 && allGames[gameId].playersInfo[1].sessionId !== '') ||
+       (numOfPlayers === 3 && allGames[gameId].playersInfo[2].sessionId !== '')) &&
+       !allGames[gameId].shouldGameStart) {
+           startGameLogics(gameId);
        }  // if
 } // fillPlayersSessionIds
 
-function calculatePlayersScore() {
-    console.log(`in calcu players`);
+function calculatePlayersScore(gameId) {
+    console.log(`in calcu players and gameId is ${gameId}, while allGames.gameId is ${allGames[gameId]}`);
     // for(let i = 0; i < numOfPlayers; i++) {
-    //     state.playersInfo[i].stats.score = getScoreFromTiles(state.playersTiles[i])
-    for(let i = 0; i < state.activePlayersArr.length; i++) { 
+    //     allGames[gameId].playersInfo[i].stats.score = getScoreFromTiles(allGames[gameId].playersTiles[i])
+    for(let i = 0; i < allGames[gameId].activePlayersArr.length; i++) { 
         // updating the score ONLY of the players that left in the game. activePlayerArr could look like [0,2] cause 1 has won
-        state.playersInfo[state.activePlayersArr[i]].stats.score = getScoreFromTiles(state.playersTiles[i])
+        allGames[gameId].playersInfo[allGames[gameId].activePlayersArr[i]].stats.score = getScoreFromTiles(allGames[gameId].playersTiles[i])
     } // for
 } // calculatePlayersScore
 
-function extractPlayerUniqueId(id) { // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
+function extractPlayerUniqueId(id, gameId) { // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
     for(let i = 0; i < numOfPlayers; i++)
-        if(state.playersInfo[i].sessionId === id)
+        if(allGames[gameId].playersInfo[i].sessionId === id)
             return i;
     return 'err';
 } // extractPlayerUniqueId
 
-function calcPlayerSeconds()
+function calcPlayerSeconds(gameId)
 {
     if(numOfPlayers === 3) // the time is the total time minus the other users times.
     {
-        state.playersInfo[state.activePlayer].playerTime = state.playersInfo[state.activePlayer].playerTime 
-         + state.secondsElapsed - state.playersInfo[(state.activePlayer + 1 ) % numOfPlayers].playerTime
-          - state.playersInfo[(state.activePlayer + 2 ) % numOfPlayers].playerTime 
+        allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime = allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime 
+         + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime
+          - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 2 ) % numOfPlayers].playerTime 
     }
     if(numOfPlayers === 2)
     {
-        state.playersInfo[state.activePlayer].playerTime = state.playersInfo[state.activePlayer].playerTime 
-         + state.secondsElapsed - state.playersInfo[(state.activePlayer + 1 ) % numOfPlayers].playerTime
+        allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime = allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime 
+         + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime
     }
 } // calcPlayerSeconds
 
-function updateStats() {
-    state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
-    state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
-    state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
+function updateStats(gameId) {
+    allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalTurns = allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalTurns + 1;
+    allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalPot = allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalPot + 1;
+    allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.avgTimePerTurn =   (allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime / (  allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalTurns)).toFixed(2)
 } // updateStats
 
-function updateStatsAndCalcPlayerSeconds() {
-    calcPlayerSeconds();
-    updateStats();
+function updateStatsAndCalcPlayerSeconds(gameId) {
+    calcPlayerSeconds(gameId);
+    updateStats(gameId);
 } // updateStats
 
-function activePlayerWinsLogics() {
-    state.activePlayersArr.splice(state.activePlayer, 1); // delete the 'activePlayer' in the arr
-    state.playersInfo[state.activePlayer].won = true; // mark activePlayer won to true in it's object
+function activePlayerWinsLogics(gameId) {
+    allGames[gameId].activePlayersArr.splice(allGames[gameId].activePlayer, 1); // delete the 'activePlayer' in the arr
+    allGames[gameId].playersInfo[allGames[gameId].activePlayer].won = true; // mark activePlayer won to true in it's object
     
-    if(state.activePlayersArr.length === 1) { // if only 1 player left... then:
-        state.isGameOver = true; // it's like: isGameOver = true;
+    if(allGames[gameId].activePlayersArr.length === 1) { // if only 1 player left... then:
+        allGames[gameId].isGameOver = true; // it's like: isGameOver = true;
     } // else
 
 
 } // activePlayerWinsLogics
 
-function switchTurn() {
-    // state.activePlayer = (state.activePlayer + 1) % numOfPlayers; // for instacne: [0,1,2] => [0,2]
-    if(state.playersInfo[state.activePlayer].won === true) {
-        state.activePlayerIndex = state.activePlayerIndex % state.activePlayersArr.length; // no "+ 1", cause we spliced him from the array
+function switchTurn(gameId) {
+    // allGames[gameId].activePlayer = (allGames[gameId].activePlayer + 1) % numOfPlayers; // for instacne: [0,1,2] => [0,2]
+    if(allGames[gameId].playersInfo[allGames[gameId].activePlayer].won === true) {
+        allGames[gameId].activePlayerIndex = allGames[gameId].activePlayerIndex % allGames[gameId].activePlayersArr.length; // no "+ 1", cause we spliced him from the array
     } else {
-        state.activePlayerIndex = (state.activePlayerIndex + 1) % state.activePlayersArr.length; 
+        allGames[gameId].activePlayerIndex = (allGames[gameId].activePlayerIndex + 1) % allGames[gameId].activePlayersArr.length; 
     }
 
-    state.activePlayer = state.activePlayersArr[state.activePlayerIndex];
+    allGames[gameId].activePlayer = allGames[gameId].activePlayersArr[allGames[gameId].activePlayerIndex];
 } // switchTurn
 
 /******************************* request handling ***************************************************/
@@ -259,28 +263,30 @@ gameManagement.get('/state', (req, res) => { // העפתי את הקוד של ש
 
     let gameId = req.query.gameId;
 
-   fillPlayersSessionIds(req.session.id);
+   fillPlayersSessionIds(req.session.id, gameId);
 
 
 
-   const playerUniqueId = extractPlayerUniqueId(req.session.id); // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
+   const playerUniqueId = extractPlayerUniqueId(req.session.id, gameId); // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
    if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
  
     res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
-        logicBoard: state.logicBoard,
-        playerTiles: state.playersTiles[playerUniqueId],
+        logicBoard: allGames[gameId].logicBoard,
+        playerTiles: allGames[gameId].playersTiles[playerUniqueId],
         yourUniqueId: playerUniqueId, // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-        youWon: state.playersInfo[playerUniqueId].won,
-        activePlayer: state.activePlayer,
-        secondsElapsed: state.secondsElapsed,
-        stats: state.playersInfo[playerUniqueId].stats,
-        howManyPlayersAreReady: state.howManyPlayersAreReady,
-        isGameOver: state.isGameOver,
-        shouldGameStart: state.shouldGameStart,
+        youWon: allGames[gameId].playersInfo[playerUniqueId].won,
+        activePlayer: allGames[gameId].activePlayer,
+        secondsElapsed: allGames[gameId].secondsElapsed,
+        stats: allGames[gameId].playersInfo[playerUniqueId].stats,
+        howManyPlayersAreReady: allGames[gameId].howManyPlayersAreReady,
+        isGameOver: allGames[gameId].isGameOver,
+        shouldGameStart: allGames[gameId].shouldGameStart,
     });
 });
 
 gameManagement.post('/move', auth.userAuthentication, (req, res) => {
+
+    const gameId = req.query.gameId;
     
     // update the state of the game: 
     let i = req.query.i;
@@ -289,22 +295,22 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
     let verticality = req.query.verticality;
 
     // 1. the logic board should change
-    state.logicBoard[i][j] = `${tile},${verticality}`; 
+    allGames[gameId].logicBoard[i][j] = `${tile},${verticality}`; 
 
     // 2. the active player tiles should be shorter... 
-    activePlayerTiles = state.playersTiles[state.activePlayer];
+    activePlayerTiles = allGames[gameId].playersTiles[allGames[gameId].activePlayer];
     activePlayerTiles.splice(activePlayerTiles.indexOf(tile), 1);
     
     // 3. score and stuff...
-    calculatePlayersScore();
-    updateStatsAndCalcPlayerSeconds();
+    calculatePlayersScore(gameId);
+    updateStatsAndCalcPlayerSeconds(gameId);
 
     if(activePlayerTiles.length === 0) {
-        activePlayerWinsLogics(res); // then activePlayerWins!
+        activePlayerWinsLogics(gameId); // then activePlayerWins!
     }
 
     // switch turn...
-    switchTurn();
+    switchTurn(gameId);
 
 
     res.sendStatus(200);
@@ -312,38 +318,40 @@ gameManagement.post('/move', auth.userAuthentication, (req, res) => {
 
 gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
-    if(state.potTiles.length === 0) { // gonna be an error
+    const gameId = req.query.gameId;
+
+    if(allGames[gameId].potTiles.length === 0) { // gonna be an error
            console.log ("Pot is empty")
            res.status(403).send('pot is empty!');
     } else { // gonna be good
-        const oldPotTiles = state.potTiles;
-        const oldPlayerTiles = state.playersTiles[state.activePlayer];
+        const oldPotTiles = allGames[gameId].potTiles;
+        const oldPlayerTiles = allGames[gameId].playersTiles[allGames[gameId].activePlayer];
         //this.statesArray.push(this.deepClone(this.state));
         oldPlayerTiles.push(oldPotTiles.splice(oldPotTiles.length -1, 1)[0]);
 
 
-        state.potTiles = oldPotTiles;
-        state.playersTiles[state.activePlayer] = oldPlayerTiles;
+        allGames[gameId].potTiles = oldPotTiles;
+        allGames[gameId].playersTiles[allGames[gameId].activePlayer] = oldPlayerTiles;
 
         // after taking from the pot, we should re-calc the player score
-        calculatePlayersScore();
-        calcPlayerSeconds();
+        calculatePlayersScore(gameId);
+        calcPlayerSeconds(gameId);
 
         // update some Shay's stuff that we should bring out to a function!
-        state.playersInfo[state.activePlayer].stats.totalTurns = state.playersInfo[state.activePlayer].stats.totalTurns + 1;
-        state.playersInfo[state.activePlayer].stats.totalPot = state.playersInfo[state.activePlayer].stats.totalPot + 1;
-        state.playersInfo[state.activePlayer].stats.avgTimePerTurn =   (state.playersInfo[state.activePlayer].playerTime / (  state.playersInfo[state.activePlayer].stats.totalTurns)).toFixed(2)
+        allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalTurns = allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalTurns + 1;
+        allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalPot = allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalPot + 1;
+        allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.avgTimePerTurn =   (allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime / (  allGames[gameId].playersInfo[allGames[gameId].activePlayer].stats.totalTurns)).toFixed(2)
 
-        if(state.potTiles.length === 0) { // if now potTiles === 0, it means no more potTiles. if you don't have legal moves: game is over
+        if(allGames[gameId].potTiles.length === 0) { // if now potTiles === 0, it means no more potTiles. if you don't have legal moves: game is over
             var someCodeLine = 'some';
-            if(hasNoMoreLegalMoves()) {
+            if(hasNoMoreLegalMoves()) { // should delete this and move all to client. he'll notify us if hasMoreLegalmoves
 
             } else {
 
             }
         } // if
         
-        switchTurn();
+        switchTurn(gameId);
    
         res.sendStatus(200);
         //   : (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
@@ -352,12 +360,12 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
 
         // need to deal with this as well!
 
-        // score : this.getScoreFromTiles(this.state.playerTiles),
+        // score : this.getScoreFromTiles(this.allGames[gameId].playerTiles),
         // currentStateIndex: prevState.currentStateIndex  + 1,
 
                 //         if(curPotTiles.length <= 1) {
         //                 window.setTimeout(() => {
-        //                 if(!this.state.isGameOver && this.hasNoMoreLegalMoves()) {
+        //                 if(!this.allGames[gameId].isGameOver && this.hasNoMoreLegalMoves()) {
         //                     alert('player loses!')
         //                     this.setState({
         //                         isGameOver:true

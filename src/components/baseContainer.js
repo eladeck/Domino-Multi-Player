@@ -29,9 +29,12 @@ export default class BaseContainer extends React.Component {
     handleNewGame() { // im in the middle. should figure how to add req.body to the fetch, and then get the detials (gameName, numOfplayers) in the epxress, and use this data
         let game = {};
         game.gameName = prompt("enter game name");
-        game.numOfPlayers = prompt("enter number of players");
+        game.numOfPlayers = Number(prompt("2 or 3 players?"))
 
-        fetch('/game/createNewGame', {method:'POST', body:game, credentials:'include'})
+        console.log(`about to send this object to server:`)
+        console.log(game);
+
+        fetch('/game/createNewGame', {method:'POST', body:JSON.stringify(game), credentials:'include'})
         .then(res => res.json())
         .then(theRealRes => this.setState({gameId: theRealRes.gameId}));
 
@@ -51,20 +54,20 @@ export default class BaseContainer extends React.Component {
                     />; // must return jsx
         } else {
              // render 'game'
+            return (
             <GameRoom
                 switchScreen={this.switchScreen}
                 gameId={this.state.gameId}
-            />
+            />)
 
 
-            return <div>error! screenToRedner is {this.state.screenToRender}, and must be either 'Lobby' or 'login'</div>
         } // else
 
         //for bonus: return this.renderChatRoom();
     } // render
 
-    switchScreen(screenToRender) {
-        this.setState({screenToRender})
+    switchScreen(screenToRender, gameId) {
+        this.setState({screenToRender, gameId})
     } // switchScreen
 
 

@@ -83,9 +83,9 @@ class Lobby extends Component {
             return (
                 <React.Fragment>
                     <h2>all Games:</h2>
-                    {this.state.allGames.map((game) =>
+                    {allGames.map((game) =>
                         <React.Fragment>
-                            <button onClick={this.handleNewGame}>
+                            <button onClick={() => this.props.switchScreen('game', game.gameId)}>
                                 go to game {game.gameName} by {this.state.allUsers[game.gameOwnerId]}! 
                                 it requires {game.numOfPlayers} players. 
                             </button>

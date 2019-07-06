@@ -88,7 +88,7 @@ class Board extends Component {
                 if(this.props.isMoveValid(i, j)) {
 
                     // 1. notyfing the sever that we made a move (we already checked that it is legal)
-                    fetch(`/game/move?i=${i}&j=${j}&selectedTile=${this.props.selectedTile}&verticality=${document.getElementById(this.props.selectedTile).parentNode.id[11]}`,
+                    fetch(`/game/move?gameId=${this.props.gameId}&i=${i}&j=${j}&selectedTile=${this.props.selectedTile}&verticality=${document.getElementById(this.props.selectedTile).parentNode.id[11]}`,
                     {method:'POST', credentials: 'include'})
                     .then(res => res.json())
                     .then(theRealResObj => {console.log(`I made 'POST' to \move, got back:`); console.log(theRealResObj);})
