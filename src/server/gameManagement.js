@@ -14,6 +14,14 @@ gameManagement.post('/createNewGame', (req, res) => {
 
     let gameId = `${req.session.id},${req.body.gameName}`;
 
+    for(propName in allGames) {
+        if(allGames[propName].gameName === req.body.gameName) {
+            res.sendStatus(405);
+            return;
+        } // if
+    } // for
+
+
     let newGame = new State(gameId,
                             gameOwnerId = req.session.id,
                             gameName = req.body.gameName,
@@ -54,7 +62,7 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
     this.activePlayer = 0; // 0 -> 1 -> 2 -> (3?) -> 0 ... (activePlayer + 1) % numOfPlayers
     this.activePlayersArr = numOfPlayers === 2 ? [0, 1] : [0, 1, 2]
     this.activePlayerIndex = 0;
-    this.howManyPlayersAreReady = '';
+    this.howManyPlayersAreReady = `0/${numOfPlayers}`;
     this.shouldGameStart = false; // maybe chagne name to: isGameOn?
     this.isGameOver = false;
     this.playersInfo = createPlayersInfo();

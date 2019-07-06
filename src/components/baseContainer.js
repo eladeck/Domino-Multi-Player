@@ -29,11 +29,31 @@ export default class BaseContainer extends React.Component {
     handleNewGame() { 
         let game = {};
         game.gameName = prompt("enter game name");
-        game.numOfPlayers = Number(prompt("2 or 3 players?"))
+
+        let inputValid = false;
+        while(!inputValid) {
+            game.numOfPlayers = Number(prompt("2 or 3 players?"))
+            if(game.numOfPlayers === 2 || game.numOfPlayers === 3) 
+                inputValid = true;
+        } // while
 
         fetch('/game/createNewGame', {method:'POST', body:JSON.stringify(game), credentials:'include'})
-        .then(res => res.json())
+        .then(res => {
+            if(!res.ok) {
+                alert(`can't create new game, maybe game name is already acquired?`)
+                throw `can't create new game, maybe game name is already acquired?`;
+            }
+            return res.json()})
         .then(theRealRes => this.setState({gameId: theRealRes.gameId}));
+
+
+        // return fetch('/users',{method: 'GET', credentials: 'include'})
+        // .then(response => {            
+        //     if (!response.ok){
+        //         throw response;
+        //     }
+        //     return response.json();
+        // });
 
         // this.switchScreen('game');
 
