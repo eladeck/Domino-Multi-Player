@@ -83,14 +83,14 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
     this.shuffledTiles = shuffleTiles();
     this.tiles = createTiles(); // ["00","01", ... ] 
     this.potTiles = this.shuffledTiles.slice(6 * numOfPlayers, 28);
-    this.playersTiles = createPlayersTiles(this.shuffledTiles);
+    this.playersTiles = createPlayersTiles(this.shuffledTiles, numOfPlayers);
     this.activePlayer = 0; // 0 -> 1 -> 2 -> (3?) -> 0 ... (activePlayer + 1) % numOfPlayers
     this.activePlayersArr = numOfPlayers === 2 ? [0, 1] : [0, 1, 2]
     this.activePlayerIndex = 0;
     this.howManyPlayersAreReady = `0/${numOfPlayers}`;
     this.shouldGameStart = false; // maybe chagne name to: isGameOn?
     this.isGameOver = false;
-    this.playersInfo = createPlayersInfo();
+    this.playersInfo = createPlayersInfo(numOfPlayers);
 
 
     //Clock
@@ -120,7 +120,7 @@ function finishGameLogics(gameId) {
     clearInterval(allGames[gameId].incrementer);
 } // finishGameLogics
 
-function createPlayersInfo() {
+function createPlayersInfo(numOfPlayers) {
     let playersInfo = [];
     for(let i = 0; i < numOfPlayers; i++) {
         let player = {
@@ -152,7 +152,7 @@ function getScoreFromTiles(playerTiles){
     return res;
 } // getScoreFromTiles
 
-function createPlayersTiles(shuffledTiles) {
+function createPlayersTiles(shuffledTiles, numOfPlayers) {
     let playersTiles = [shuffledTiles.slice(0, 6), shuffledTiles.slice(6, 12)];
     if(numOfPlayers === 3) {
         playersTiles.push(shuffledTiles.slice(12, 18))
@@ -213,7 +213,7 @@ function playerGotOutFromGame(sessionId, gameId) {
         allGames[gameId].playersInfo[2].sessionId = '';
     }
 
-    allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${numOfPlayers}`;
+    allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${allGames[gameId].numOfPlayers}`;
 } // playerGotOutFromGame
 
 function howManyPlayersInTheGame(gameId) {
@@ -252,7 +252,7 @@ function fillPlayersSessionIds(id, gameId) {
         allGames[gameId].playersInfo[2].sessionId = id;
     }
 
-    allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${numOfPlayers}`;
+    allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${allGames[gameId].numOfPlayers}`;
 
 
     // start game! numOfplayers === 2 && 2 taim => tathil
@@ -275,7 +275,7 @@ function calculatePlayersScore(gameId) {
 } // calculatePlayersScore
 
 function extractPlayerUniqueId(id, gameId) { // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-    for(let i = 0; i < numOfPlayers; i++)
+    for(let i = 0; i < allGames[gameId].numOfPlayers; i++)
         if(allGames[gameId].playersInfo[i].sessionId === id)
             return i;
     return 'err';
@@ -283,19 +283,19 @@ function extractPlayerUniqueId(id, gameId) { // UnqiueId is simply the number of
 
 function calcPlayerSeconds(gameId)
 {
-    if(numOfPlayers === 3) // the time is the total time minus the other users times.
+    if(allGames[gameId].numOfPlayers === 3) // the time is the total time minus the other users times.
     {
         allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime = allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime 
-         + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime
-          - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 2 ) % numOfPlayers].playerTime 
+         + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % allGames[gameId].numOfPlayers].playerTime
+          - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 2 ) % allGames[gameId].numOfPlayers].playerTime 
     }
-    if(numOfPlayers === 2)
+    if(allGames[gameId].numOfPlayers === 2)
     {
         // console.log(allGames[gameId].secondsElapsed)
         // console.log(allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime)
         // console.log(allGames[gameId].playersInfo[(allGames[gameId].activePlayer) % numOfPlayers].playerTime)
         allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime = allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime 
-         + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime
+         + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % allGames[gameId].numOfPlayers].playerTime
 
          
 
