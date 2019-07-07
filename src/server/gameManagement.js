@@ -7,6 +7,12 @@ let allGames = {}; // pairs of {gameId : state}
 
 /********************************** */
 
+gameManagement.post('/goToLobby', (req, res) => {
+    console.log(`user ${auth.getUserInfo(req.session.id).name} from game id ${req.query.gameId} has requested to go back to lobby`);
+    playerGotOutFromGame(req.session.id, req.query.gameId);
+});
+
+
 gameManagement.post('/createNewGame', (req, res) => {
     req.body = JSON.parse(req.body);
     console.log(`server just got request to open a new game with req.body.gameName of ${req.body.gameName}`)
@@ -177,23 +183,63 @@ function buildBoard() {
     return board;
 } // buildBoard
 
+function playerGotOutFromGame(sessionId, gameId) {
+    if(!allGames[gameId]) {console.log(`player ${sessionId} requested to exit game ${gameId} but it does not exist;`); return; }
+    
+    if(allGames[gameId].playersInfo[0].sessionId === sessionId) {
+        allGames[gameId].playersInfo[0].sessionId = '';
+    } else if(allGames[gameId].playersInfo[1].sessionId === sessionId) {
+        allGames[gameId].playersInfo[1].sessionId = '';
+    } else {
+        allGames[gameId].playersInfo[2].sessionId = '';
+    }
+
+    allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${numOfPlayers}`;
+} // playerGotOutFromGame
+
+function howManyPlayersInTheGame(gameId) {
+
+    let playersCount = 0;
+
+    for(let i = 0; i <  allGames[gameId].numOfPlayers; i++) {
+        console.log(`the ${i} player seesionID is: ${allGames[gameId].playersInfo[i].sessionId}`);
+            if(allGames[gameId].playersInfo[i].sessionId !== '') {
+                playersCount++;
+            } // if
+    } // for
+
+    return playersCount;
+
+} // howManyPlayersInTheGame
+
+function IAmInTheGameAlready(id, gameId) {
+    for(let i = 0; i < allGames[gameId].numOfPlayers; i++)
+        if(allGames[gameId].playersInfo[i].sessionId === id)
+            return true;
+
+    return false;
+} // IAmInTheGameAlready
+
 function fillPlayersSessionIds(id, gameId) {
+    if(IAmInTheGameAlready(id, gameId)) return;
+
     if(allGames[gameId].playersInfo[0].sessionId === '') {
         allGames[gameId].playersInfo[0].sessionId = id;
-        allGames[gameId].howManyPlayersAreReady = `1/${numOfPlayers}`;
     }
     if(allGames[gameId].playersInfo[1].sessionId === '' && id !== allGames[gameId].playersInfo[0].sessionId) {
         allGames[gameId].playersInfo[1].sessionId = id;
-        allGames[gameId].howManyPlayersAreReady = `2/${numOfPlayers}`;
     }
     if(allGames[gameId].playersInfo[2] && allGames[gameId].playersInfo[2].sessionId === '' && id !== allGames[gameId].playersInfo[0].sessionId && id !== allGames[gameId].playersInfo[1].sessionId) {
         allGames[gameId].playersInfo[2].sessionId = id;
-        allGames[gameId].howManyPlayersAreReady = `3/${numOfPlayers}`;
     }
 
+    allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${numOfPlayers}`;
+
+
     // start game! numOfplayers === 2 && 2 taim => tathil
-    if(((numOfPlayers === 2 && allGames[gameId].playersInfo[1].sessionId !== '') ||
-       (numOfPlayers === 3 && allGames[gameId].playersInfo[2].sessionId !== '')) &&
+    // if(((numOfPlayers === 2 && allGames[gameId].playersInfo[1].sessionId !== '') ||
+    //    (numOfPlayers === 3 && allGames[gameId].playersInfo[2].sessionId !== '')) &&
+    if(howManyPlayersInTheGame(gameId) === allGames[gameId].numOfPlayers &&
        !allGames[gameId].shouldGameStart) {
            startGameLogics(gameId);
        }  // if
