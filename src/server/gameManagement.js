@@ -35,6 +35,25 @@ gameManagement.post('/createNewGame', (req, res) => {
 });
 
 
+gameManagement.post('/deleteGame', (req, res) => {
+    let gameId = req.query.gameId;
+    console.log(`server just got request to delete the game ${gameId}`)
+    delete allGames[gameId]; 
+    res.sendStatus(200);
+
+
+
+
+    // let newGame = new State(gameId,
+    //                         gameOwnerId = req.session.id,
+    //                         gameName = req.body.gameName,
+    //                         numOfPlayers = req.body.numOfPlayers);
+
+    //allGames[gameId] = undefined;
+
+  //  res.send({gameId}); // sending back to the client the gameId
+});
+
 
 /******************************* business logic of the game ******************************************************/
 const boardSize = 58;
@@ -226,8 +245,14 @@ function calcPlayerSeconds(gameId)
     }
     if(numOfPlayers === 2)
     {
+        // console.log(allGames[gameId].secondsElapsed)
+        // console.log(allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime)
+        // console.log(allGames[gameId].playersInfo[(allGames[gameId].activePlayer) % numOfPlayers].playerTime)
         allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime = allGames[gameId].playersInfo[allGames[gameId].activePlayer].playerTime 
          + allGames[gameId].secondsElapsed - allGames[gameId].playersInfo[(allGames[gameId].activePlayer + 1 ) % numOfPlayers].playerTime
+
+         
+
     }
 } // calcPlayerSeconds
 

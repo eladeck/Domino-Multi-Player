@@ -16,6 +16,8 @@ class Lobby extends Component {
         this.renderGames = this.renderGames.bind(this)
         this.renderUsers = this.renderUsers.bind(this)
         this.isEmpty = this.isEmpty.bind(this)
+        this.handleDeleteClick = this.handleDeleteClick.bind(this)
+
         this.userListDoesntContainMe = this.userListDoesntContainMe.bind(this)
     } // c'tor
 
@@ -39,7 +41,20 @@ class Lobby extends Component {
         return true;
     } // isEmpty
 
-    
+        
+    handleDeleteClick(numOfPlayers, gameId)
+    {
+       
+        if(Number(numOfPlayers[0]) === 0)
+        {
+            //delete game by game name 
+            fetch(`/game/deleteGame?gameId=${gameId}`, {method:'POST', credentials:'include'});
+            console.log('delete game by game name ');
+        }
+        else 
+             alert(`you can not remove this game because there are already ${numOfPlayers}players in the game `);
+
+    }
 
     renderUsers() {
         if(this.isEmpty(this.state.allUsers)) return;
@@ -76,9 +91,11 @@ class Lobby extends Component {
             const gameOwnerId = this.state.allGames[gameId].gameOwnerId; // 'name' is the value of the key 'sessionid'
             const howManyPlayersAreReady = this.state.allGames[gameId].howManyPlayersAreReady;
             const shouldGameStart = this.state.allGames[gameId].shouldGameStart;
+            let shouldHaveDeleteButton = false;
+            if(this.state.sessionId === gameOwnerId)
+                shouldHaveDeleteButton = true;
 
-
-            allGames.push({gameId, gameName, numOfPlayers, gameOwnerId, howManyPlayersAreReady, shouldGameStart});
+            allGames.push({gameId, gameName, numOfPlayers, gameOwnerId, howManyPlayersAreReady, shouldGameStart, shouldHaveDeleteButton});
         } // for
 
     //     this.howManyPlayersAreReady = '';
@@ -92,6 +109,7 @@ class Lobby extends Component {
             <React.Fragment>
                 <h2>all Games:</h2>
                 {allGames.map((game) =>
+                    
                     <React.Fragment>
                         <button onClick={() => this.props.switchScreen('game', game.gameId)}>
                             go to game {game.gameName} by {this.state.allUsers[game.gameOwnerId]}! 
@@ -99,6 +117,8 @@ class Lobby extends Component {
                             {game.howManyPlayersAreReady} players are in the game,
                             {game.shouldGameStart ? ` game already started!` : ` game hasn't started yet!`}
                         </button>
+                        {game.shouldHaveDeleteButton ? <button onClick={()=>this.handleDeleteClick(game.howManyPlayersAreReady, game.gameId)} >delete game</button> : null}
+                        
                         <br></br>
                     </React.Fragment>
                 )}
@@ -137,7 +157,9 @@ class Lobby extends Component {
 
     getState() {
         fetch('/lobby/state', {method:'GET', credentials: 'include'})
-        .then(response => {console.log(response); return response.json()})
+        .then(response => {
+          //  console.log(response);
+             return response.json()})
         .then(state => {
             if(this.userListDoesntContainMe(state.allUsers, state.sessionId)) {
                 this.props.switchScreen('login');
