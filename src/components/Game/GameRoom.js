@@ -49,6 +49,7 @@ class GameRoom extends Component {
         this.isMoveValid = this.isMoveValid.bind(this);
         this.handelUndoClcik = this.handelUndoClcik.bind(this);
         this.hasNoMoreLegalMoves = this.hasNoMoreLegalMoves.bind(this);
+        this.handleGoToLobby = this.handleGoToLobby.bind(this);
         
         // this.getScoreFromTiles = this.getScoreFromTiles.bind(this);
         this.deepClone = this.deepClone.bind(this);
@@ -86,11 +87,12 @@ class GameRoom extends Component {
 
 
     componentDidMount() {
-        console.log(`Game room started...`)
+        console.log(`in compononet DID mount`);
         this.getState();
     } // 
 
     componentWillUnmount() {
+        console.log(`in compononet WILL mount`);
         clearTimeout(this.timeoutId);
     }
 
@@ -459,6 +461,16 @@ class GameRoom extends Component {
                )
           }
     }
+
+    handleGoToLobby() {
+        clearTimeout(this.timeoutId);
+
+        console.log(`about to request to go back to lobby. game id is ${this.props.gameId}`)
+        fetch(`game/goToLobby?gameId=${this.props.gameId}`, {method:'POST', credentials:'include'})
+        
+        setTimeout(() => this.props.switchScreen('lobby'), 200);
+    }
+
     
     render() {
         let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
@@ -479,9 +491,6 @@ class GameRoom extends Component {
             
             <div>
 
-            <button onClick={() => this.props.switchScreen('lobby')}>
-                     go to lobby!
-            </button>
             {this.state.shouldGameStart ? ( <div><br></br>
             <br></br>
             <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
@@ -530,7 +539,8 @@ class GameRoom extends Component {
                         <div title="flipping TAKI card" className="flipping-card-wrapper">
                             {/* <img className="front-card" src={Back}/>
                             <img className="back-card" src={Front} /> */}
-                        </div> 
+                        </div>
+                        <button onClick={this.handleGoToLobby}>go to lobby</button>
                           <div className="container-2">
                                 <div className="btn btn-two">
                                  <span>Waiting for players! {this.state.howManyPlayersAreReady/* 1/3 */}  </span>
