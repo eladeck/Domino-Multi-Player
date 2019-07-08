@@ -3,6 +3,26 @@ body {
 	overflow: hidden
 }
 
+.beating-button {
+	background-color: #ff4da6;
+	color:white;
+	font-family: cursive;
+    border-radius: 20px;
+    border-block-end-color: #f1f1f1;
+    border-width: 7px;
+	animation: 3s ease 0s infinite beat;
+  }
+  
+  @keyframes beat {
+	0%, 50%, 100% { transform: scale(1, 1); }
+	30%, 80% { transform: scale(0.92, 0.95); }
+  }
+  
+  @keyframes pulse {
+	0%, 50%, 100% {  background: #fee; }
+	30%, 80% { background: #fff; }
+  }
+
 ::-webkit-scrollbar {
 width: 50px;
 height: 50px;

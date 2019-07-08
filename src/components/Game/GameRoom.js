@@ -31,6 +31,7 @@ class GameRoom extends Component {
             shouldGameStart:false, // server will let us know once game should start
             isGameOver:false, 
             youWon:false, 
+            playersInfo:[],
 
 
             //stats
@@ -80,6 +81,7 @@ class GameRoom extends Component {
                 shouldGameStart:state.shouldGameStart, 
                 isGameOver: state.isGameOver,
                 youWon:state.youWon, 
+                playersInfo:state.playersInfo,
             }))
         
         this.timeoutId = setTimeout(this.getState, 200);
@@ -497,6 +499,18 @@ class GameRoom extends Component {
             <div>{this.state.isGameOver ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can till play." : null}</h1>)}</div>
             <h2>{formatSeconds(this.state.secondsElapsed)}</h2>
              {/* <div>{this.state.isGameOver ? (null) :<button className="btnStyle" onClick={this.handleStartClick}>start</button>}</div> */}
+             <div style={{textDecoration: "underline"}}>Players:</div>
+             <div>
+                {this.state.playersInfo.map((playerInfo, index) => {
+                    let style = {
+                        fontWeight: this.state.activePlayer === index ? "bold" : "normal", 
+                        color: playerInfo.won ? "red" : "black", 
+                    } // style
+                    let playerNameText = playerInfo.won ? playerInfo.name + " (won)" : playerInfo.won;
+                    return <div style={style}>{playerNameText}</div>
+                })}
+            </div>
+
              <div>{this.state.isGameOver ? (null) : <button disabled={!isMyTurn} className="btnStyle" onClick={this.takeTileFromPot}>Pot</button>}</div>
              <br></br>
              <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.handelPrevClick}>back!</button>) : (null)}</div>

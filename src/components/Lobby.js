@@ -105,23 +105,27 @@ class Lobby extends Component {
             return <h2>There are no current Games.</h2>
         }
 
+        
         return (
             <React.Fragment>
                 <h2>all Games:</h2>
-                {allGames.map((game) =>
+                {allGames.map((game) => {
                     
+                    let buttonClass = game.shouldGameStart ? "beating-button" : "";
+                    let gameStartedText = game.shouldGameStart ? ` game already started!` : ` game hasn't started yet!`;
+                    return (
                     <React.Fragment>
-                        <button onClick={() => this.props.switchScreen('game', game.gameId)}>
+
+                        <button disabled={game.shouldGameStart} className={buttonClass} onClick={() => this.props.switchScreen('game', game.gameId)}>
                             go to game {game.gameName} by {this.state.allUsers[game.gameOwnerId]}! 
-                            it requires {game.numOfPlayers} players.
-                            {game.howManyPlayersAreReady} players are in the game,
-                            {game.shouldGameStart ? ` game already started!` : ` game hasn't started yet!`}
+                            it requires {game.numOfPlayers} players. 
+                             {game.howManyPlayersAreReady} players are in the game, {gameStartedText}
                         </button>
                         {game.shouldHaveDeleteButton ? <button onClick={()=>this.handleDeleteClick(game.howManyPlayersAreReady, game.gameId)} >delete game</button> : null}
                         
                         <br></br>
                     </React.Fragment>
-                )}
+                )})}
             </React.Fragment>
         )
     } // renderGames

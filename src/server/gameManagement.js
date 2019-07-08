@@ -244,12 +244,15 @@ function fillPlayersSessionIds(id, gameId) {
 
     if(allGames[gameId].playersInfo[0].sessionId === '') {
         allGames[gameId].playersInfo[0].sessionId = id;
+        allGames[gameId].playersInfo[0].name = auth.getUserInfo(id).name;
     }
     if(allGames[gameId].playersInfo[1].sessionId === '' && id !== allGames[gameId].playersInfo[0].sessionId) {
         allGames[gameId].playersInfo[1].sessionId = id;
+        allGames[gameId].playersInfo[1].name = auth.getUserInfo(id).name;
     }
     if(allGames[gameId].playersInfo[2] && allGames[gameId].playersInfo[2].sessionId === '' && id !== allGames[gameId].playersInfo[0].sessionId && id !== allGames[gameId].playersInfo[1].sessionId) {
         allGames[gameId].playersInfo[2].sessionId = id;
+        allGames[gameId].playersInfo[2].name = auth.getUserInfo(id).name;
     }
 
     allGames[gameId].howManyPlayersAreReady = `${howManyPlayersInTheGame(gameId)}/${allGames[gameId].numOfPlayers}`;
@@ -360,6 +363,7 @@ gameManagement.get('/state', (req, res) => { // העפתי את הקוד של ש
         howManyPlayersAreReady: allGames[gameId].howManyPlayersAreReady,
         isGameOver: allGames[gameId].isGameOver,
         shouldGameStart: allGames[gameId].shouldGameStart,
+        playersInfo:allGames[gameId].playersInfo,
     });
 });
 
