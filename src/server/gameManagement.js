@@ -91,6 +91,7 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
     this.shouldGameStart = false; // maybe chagne name to: isGameOn?
     this.isGameOver = false;
     this.playersInfo = createPlayersInfo(numOfPlayers);
+    this.allPlayersPot = 0;
 
 
     //Clock
@@ -364,6 +365,7 @@ gameManagement.get('/state', (req, res) => { // העפתי את הקוד של ש
         isGameOver: allGames[gameId].isGameOver,
         shouldGameStart: allGames[gameId].shouldGameStart,
         playersInfo:allGames[gameId].playersInfo,
+        allPlayersPot:allGames[gameId].allPlayersPot,
     });
 });
 
@@ -435,7 +437,8 @@ gameManagement.post('/pot', auth.userAuthentication, (req, res) => {
         } // if
         
         switchTurn(gameId);
-   
+        allGames[gameId].allPlayersPot += 1;
+        console.log(allGames[gameId].allPlayersPot);
         res.sendStatus(200);
         //   : (prevState.secondsElapsed / (prevState.totalTurns + 1)).toFixed(2),
 

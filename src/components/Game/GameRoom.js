@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import Board from './Board.js';
 import Player from './Player.js';
 import Statistics from './Statistics.js'
+// import { stat } from 'fs';
 // import Back from './back.png';
 // import Front from './front.png';
 
@@ -82,6 +83,7 @@ class GameRoom extends Component {
                 isGameOver: state.isGameOver,
                 youWon:state.youWon, 
                 playersInfo:state.playersInfo,
+                allPlayersPot:state.allPlayersPot,
             }))
         
         this.timeoutId = setTimeout(this.getState, 200);
@@ -521,6 +523,7 @@ class GameRoom extends Component {
             <h1 style={{top:"-14px", position:"fixed", left:"400px"}}>welcome to game {this.props.gameId.split(',')[1]}</h1>
 
                 <Statistics 
+                    allPlayersPot = {this.state.allPlayersPot}
                     totalTurns = {this.state.stats.totalTurns}
                     totalPot = {this.state.stats.totalPot}
                     avgTimePerTurn={this.state.stats.avgTimePerTurn}

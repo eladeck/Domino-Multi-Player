@@ -19,6 +19,8 @@ class Statistics extends Component {
                 <h3>total Pot: {this.props.totalPot}</h3>
                 <h3>average time: {this.props.avgTimePerTurn}</h3>
                 <h3>score: {this.props.score}</h3>
+                <h3>All players pot: {this.props.allPlayersPot}</h3>
+
 
             </div>
             
