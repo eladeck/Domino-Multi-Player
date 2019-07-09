@@ -84,6 +84,7 @@ class GameRoom extends Component {
                 youWon:state.youWon, 
                 playersInfo:state.playersInfo,
                 allPlayersPot:state.allPlayersPot,
+                playerName: state.playerName,
             }))
         
         this.timeoutId = setTimeout(this.getState, 200);
@@ -480,6 +481,7 @@ class GameRoom extends Component {
         let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
         
         window.state = this.state;
+        console.log(this.state.playersInfo)
         // if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
         // {
         //     this.isLastTileWasPlaced = true;
@@ -523,6 +525,7 @@ class GameRoom extends Component {
             <h1 style={{top:"-14px", position:"fixed", left:"400px"}}>welcome to game {this.props.gameId.split(',')[1]}</h1>
 
                 <Statistics 
+                    myName = {this.state.playerName}
                     allPlayersPot = {this.state.allPlayersPot}
                     totalTurns = {this.state.stats.totalTurns}
                     totalPot = {this.state.stats.totalPot}

@@ -366,6 +366,7 @@ gameManagement.get('/state', (req, res) => { // העפתי את הקוד של ש
         shouldGameStart: allGames[gameId].shouldGameStart,
         playersInfo:allGames[gameId].playersInfo,
         allPlayersPot:allGames[gameId].allPlayersPot,
+        playerName:allGames[gameId].playersInfo[playerUniqueId].name,
     });
 });
 
