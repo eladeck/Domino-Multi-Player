@@ -510,18 +510,14 @@ class GameRoom extends Component {
                         fontWeight: this.state.activePlayer === index ? "bold" : "normal", 
                         color: playerInfo.won ? "red" : "black", 
                     } // style
-                    let playerNameText = playerInfo.won ? playerInfo.name + " (won)" : playerInfo.won;
+                    let playerNameText = playerInfo.won ? playerInfo.name + " (won)" : playerInfo.name;
                     return <div style={style}>{playerNameText}</div>
                 })}
             </div>
 
              <div>{this.state.isGameOver ? (null) : <button disabled={!isMyTurn} className="btnStyle" onClick={this.takeTileFromPot}>Pot</button>}</div>
              <br></br>
-             <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.handelPrevClick}>back!</button>) : (null)}</div>
-             <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.handelNextClick}>next!</button>) : (null)}</div>
-             <div>{this.state.isGameOver ? (<button className="btnStyle" onClick={this.finishGame}>New Game!</button>) : (null)}</div>
              <br></br>
-            <div>{this.state.isGameOver ? (null) : <button className="btnStyle" onClick={this.handelUndoClcik}>undo!</button>}</div>
             <h1 style={{top:"-14px", position:"fixed", left:"400px"}}>welcome to game {this.props.gameId.split(',')[1]}</h1>
 
                 <Statistics 
