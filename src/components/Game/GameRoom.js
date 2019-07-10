@@ -479,7 +479,11 @@ class GameRoom extends Component {
     
     render() {
         let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-        
+        console.log(this.state.playersInfo)
+        let isThreePlayers = false;
+        if(this.state.howManyPlayersAreReady != undefined)
+             if(Number(this.state.howManyPlayersAreReady[2]) === Number(3))
+                  isThreePlayers = true;
         window.state = this.state;
         console.log(this.state.playersInfo)
         // if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
@@ -564,15 +568,45 @@ class GameRoom extends Component {
                         </div>
                     </div>
                 )}
+
+                        <div>{this.state.isGameOver ? 
+                        <div>
+                            <Statistics 
+                            myName = {this.state.playersInfo[0].name}
+                            allPlayersPot = {this.state.allPlayersPot}
+                            totalTurns = {this.state.playersInfo[0].stats.totalTurns}
+                            totalPot = {this.state.playersInfo[0].stats.totalPot}
+                            avgTimePerTurn={this.state.playersInfo[0].stats.avgTimePerTurn}
+                            score = {this.state.playersInfo[0].stats.score} 
+                            />
+
+                            <Statistics 
+                            myName = {this.state.playersInfo[1].name}
+                            allPlayersPot = {this.state.allPlayersPot}
+                            totalTurns = {this.state.playersInfo[1].stats.totalTurns}
+                            totalPot = {this.state.playersInfo[1].stats.totalPot}
+                            avgTimePerTurn={this.state.playersInfo[1].stats.avgTimePerTurn}
+                            score = {this.state.playersInfo[1].stats.score} 
+                            />
+                                {isThreePlayers ? 
+                                <Statistics 
+                                myName = {this.state.playersInfo[2].name}
+                                allPlayersPot = {this.state.allPlayersPot}
+                                totalTurns = {this.state.playersInfo[2].stats.totalTurns}
+                                totalPot = {this.state.playersInfo[2].stats.totalPot}
+                                avgTimePerTurn={this.state.playersInfo[2].stats.avgTimePerTurn}
+                                score = {this.state.playersInfo[2].stats.score} 
+                                />
+                                : null}
+                        </div>
+                         : null}</div>
                </div>
 
         )
 } // render
 } // Game
 
-
   
-
 export default GameRoom
 
 
