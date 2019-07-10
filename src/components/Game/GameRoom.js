@@ -479,7 +479,7 @@ class GameRoom extends Component {
     
     render() {
         let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-        
+        console.log(this.state.playersInfo)
         let isThreePlayers = false;
         if(this.state.howManyPlayersAreReady != undefined)
              if(Number(this.state.howManyPlayersAreReady[2]) === Number(3))
@@ -610,9 +610,7 @@ class GameRoom extends Component {
 } // render
 } // Game
 
-
   
-
 export default GameRoom
 
 
