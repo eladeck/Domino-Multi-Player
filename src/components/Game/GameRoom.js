@@ -56,7 +56,6 @@ class GameRoom extends Component {
         this.finishGameLogics = this.finishGameLogics.bind(this);
         
         // this.getScoreFromTiles = this.getScoreFromTiles.bind(this);
-        this.deepClone = this.deepClone.bind(this);
 
 
         this.handelPrevClick = this.handelPrevClick.bind(this);
@@ -70,7 +69,8 @@ class GameRoom extends Component {
     }
 
     getState() {
-        fetch(`/game/state?gameId=${this.props.gameId}`, {method:'GET', credentials: 'include'})
+        console.log(`watch only is ${this.props.watchOnly}`)
+        fetch(`/game/state?gameId=${this.props.gameId}&watchOnly=${this.props.watchOnly}`, {method:'GET', credentials: 'include'})
         .then(response => {return response.json()})
         .then(state => {
             this.setState({
@@ -343,13 +343,6 @@ class GameRoom extends Component {
 
     }
 
-    deepClone(stateObj) {
-        stateObj.selectedTile = undefined;
-        const stateStr = JSON.stringify(stateObj)
-
-        return JSON.parse(stateStr);
-    }
-
     // getScoreFromTiles(playerTiles){
      
     //     let res = 0;
@@ -487,8 +480,7 @@ class GameRoom extends Component {
     handleGoToLobby() {
         clearTimeout(this.timeoutId);
 
-        console.log(`about to request to go back to lobby. game id is ${this.props.gameId}`)
-        fetch(`game/goToLobby?gameId=${this.props.gameId}`, {method:'POST', credentials:'include'})
+        fetch(`game/goToLobby?gameId=${this.props.gameId}&watchOnly=${this.props.watchOnly}`, {method:'POST', credentials:'include'})
         
         setTimeout(() => this.props.switchScreen('lobby'), 200);
     }
@@ -519,8 +511,8 @@ class GameRoom extends Component {
             {this.state.shouldGameStart ? ( <div><br></br>
             <br></br>
             <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
-            <div>{this.state.isGameOver ? (<h1>{this.state.finishMessage}</h1>) : null}</div>
-            <div>{this.state.isGameOver ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can still play." : null}</h1>)}</div>
+            <div>{this.state.isGameOver ? <h1>{this.state.finishMessage}</h1> : null}</div>
+            <div>{this.state.isGameOver && !this.props.watchOnly ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can still play." : null}</h1>)}</div>
             <h2>{formatSeconds(this.state.secondsElapsed)}</h2>
              {/* <div>{this.state.isGameOver ? (null) :<button className="btnStyle" onClick={this.handleStartClick}>start</button>}</div> */}
              <div style={{textDecoration: "underline"}}>Players:</div>
@@ -540,14 +532,14 @@ class GameRoom extends Component {
              <br></br>
             <h1 style={{top:"-14px", position:"fixed", left:"400px"}}>welcome to game {this.props.gameId.split(',')[1]}</h1>
 
-                <Statistics 
+                {this.props.watchOnly ? null : <Statistics 
                     myName = {this.state.playerName}
                     allPlayersPot = {this.state.allPlayersPot}
                     totalTurns = {this.state.stats.totalTurns}
                     totalPot = {this.state.stats.totalPot}
                     avgTimePerTurn={this.state.stats.avgTimePerTurn}
                     score = {this.state.stats.score} 
-                />
+                />}
 
 
                  {/* {this.state.logicBoard === undefined ? null : */}
@@ -569,7 +561,9 @@ class GameRoom extends Component {
                     selectedTile={this.state.selectedTile}
                     isGameOver={this.state.isGameOver}             
                     isMyTurn={isMyTurn}
-                /></div>) : 
+                />
+                </div>) :
+                /*game should now alreay start:*/ 
                 ( 
                     <div>
                         <div title="flipping TAKI card" className="flipping-card-wrapper">
