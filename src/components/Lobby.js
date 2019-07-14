@@ -131,6 +131,8 @@ class Lobby extends Component {
     } // renderGames
 
     render() {
+        console.log(`${new Date()}: in lobby!`);
+
         return(
             <React.Fragment>
                 <h1>

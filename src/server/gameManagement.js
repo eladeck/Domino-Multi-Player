@@ -111,14 +111,33 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
 // startGameLogics();
 
 function startGameLogics(gameId) {
-    this.incrementer = setInterval(() => 
+    allGames[gameId].incrementer = setInterval(() => 
             allGames[gameId].secondsElapsed = allGames[gameId].secondsElapsed + 1 ,1000 /*ms*/);
 
     allGames[gameId].shouldGameStart = true;
 } // startGameLogics
 
+function restOfFinishGameLogics(gameId) {
+
+    console.log('inside restOfFinishGameLogics');
+
+
+    // 2. restart the whole state 
+    allGames[gameId] = new State(gameId, 
+                                 allGames[gameId].gameOwnerId,
+                                 allGames[gameId].gameName,
+                                 allGames[gameId].numOfPlayers);
+
+    // 3. 
+
+} // restOfFinishGameLogics
+
 function finishGameLogics(gameId) {
+    
+    // 1. game is Over
+    allGames[gameId].isGameOver = true; // it's like: isGameOver = true;
     clearInterval(allGames[gameId].incrementer);
+    setTimeout(() => restOfFinishGameLogics(gameId), 2000);
 } // finishGameLogics
 
 function createPlayersInfo(numOfPlayers) {
@@ -158,8 +177,6 @@ function createPlayersTiles(shuffledTiles, numOfPlayers) {
     if(numOfPlayers === 3) {
         playersTiles.push(shuffledTiles.slice(12, 18))
     } // if (numOfPlayers === 3)
-
-    return playersTiles;
 } // createPlayersTiles
 
 function shuffleTiles() {
@@ -322,7 +339,7 @@ function activePlayerWinsLogics(gameId) {
     allGames[gameId].playersInfo[allGames[gameId].activePlayer].won = true; // mark activePlayer won to true in it's object
     
     if(allGames[gameId].activePlayersArr.length === 1) { // if only 1 player left... then:
-        allGames[gameId].isGameOver = true; // it's like: isGameOver = true;
+        finishGameLogics(gameId);
     } // else
 
 

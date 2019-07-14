@@ -33,6 +33,7 @@ class GameRoom extends Component {
             isGameOver:false, 
             youWon:false, 
             playersInfo:[],
+            finishMessage:null,
 
 
             //stats
@@ -52,6 +53,7 @@ class GameRoom extends Component {
         this.handelUndoClcik = this.handelUndoClcik.bind(this);
         this.hasNoMoreLegalMoves = this.hasNoMoreLegalMoves.bind(this);
         this.handleGoToLobby = this.handleGoToLobby.bind(this);
+        this.finishGameLogics = this.finishGameLogics.bind(this);
         
         // this.getScoreFromTiles = this.getScoreFromTiles.bind(this);
         this.deepClone = this.deepClone.bind(this);
@@ -70,7 +72,7 @@ class GameRoom extends Component {
     getState() {
         fetch(`/game/state?gameId=${this.props.gameId}`, {method:'GET', credentials: 'include'})
         .then(response => {return response.json()})
-        .then(state => 
+        .then(state => {
             this.setState({
                 logicBoard: state.logicBoard,
                 playerTiles: state.playerTiles,
@@ -85,10 +87,25 @@ class GameRoom extends Component {
                 playersInfo:state.playersInfo,
                 allPlayersPot:state.allPlayersPot,
                 playerName: state.playerName,
-            }))
+            })})
         
-        this.timeoutId = setTimeout(this.getState, 200);
+        if(!this.state.isGameOver) {
+            this.timeoutId = setTimeout(this.getState, 200);
+        } else {
+            console.log(`in else`);
+            this.finishGameLogics();
+        }
     } // getState
+
+    finishGameLogics() {
+        console.log(`in finish Game Logics`);
+
+        // 
+
+        // 
+        this.setState({finishMessage: 'Hope you enjoyed, going to lobby now...'}); 
+        setTimeout(() => this.props.switchScreen('lobby'), 4000);
+    } // finishGameLogics
 
 
     componentDidMount() {
@@ -479,13 +496,11 @@ class GameRoom extends Component {
     
     render() {
         let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-        console.log(this.state.playersInfo)
         let isThreePlayers = false;
         if(this.state.howManyPlayersAreReady != undefined)
              if(Number(this.state.howManyPlayersAreReady[2]) === Number(3))
                   isThreePlayers = true;
         window.state = this.state;
-        console.log(this.state.playersInfo)
         // if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
         // {
         //     this.isLastTileWasPlaced = true;
@@ -504,7 +519,8 @@ class GameRoom extends Component {
             {this.state.shouldGameStart ? ( <div><br></br>
             <br></br>
             <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
-            <div>{this.state.isGameOver ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can till play." : null}</h1>)}</div>
+            <div>{this.state.isGameOver ? (<h1>{this.state.finishMessage}</h1>) : null}</div>
+            <div>{this.state.isGameOver ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can still play." : null}</h1>)}</div>
             <h2>{formatSeconds(this.state.secondsElapsed)}</h2>
              {/* <div>{this.state.isGameOver ? (null) :<button className="btnStyle" onClick={this.handleStartClick}>start</button>}</div> */}
              <div style={{textDecoration: "underline"}}>Players:</div>
