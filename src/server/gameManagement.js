@@ -111,32 +111,17 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
 // startGameLogics();
 
 function startGameLogics(gameId) {
-    allGames[gameId].incrementer = setInterval(() => 
+    this.incrementer = setInterval(() => 
             allGames[gameId].secondsElapsed = allGames[gameId].secondsElapsed + 1 ,1000 /*ms*/);
 
     allGames[gameId].shouldGameStart = true;
 } // startGameLogics
 
-function restOfFinishGameLogics(gameId) {
-
-    console.log('inside restOfFinishGameLogics');
-
-
-    // 2. restart the whole state 
-    allGames[gameId] = new State(gameId, 
-                                 allGames[gameId].gameOwnerId,
-                                 allGames[gameId].gameName,
-                                 allGames[gameId].numOfPlayers);
-
-    // 3. 
-
-} // restOfFinishGameLogics
-
 function finishGameLogics(gameId) {
-    
+
     // 1. game is Over
     allGames[gameId].isGameOver = true; // it's like: isGameOver = true;
-    clearInterval(allGames[gameId].incrementer);
+    clearInterval(allGames[gameId].incrementer); // maybe delete this line
     setTimeout(() => restOfFinishGameLogics(gameId), 2000);
 } // finishGameLogics
 
@@ -163,6 +148,23 @@ function createPlayersInfo(numOfPlayers) {
     return playersInfo;
 } // createPlayersInfo
 
+function restOfFinishGameLogics(gameId) {
+
+    console.log('inside restOfFinishGameLogics');
+
+
+    // 2. restart the whole state 
+    allGames[gameId] = new State(gameId, 
+                                 allGames[gameId].gameOwnerId,
+                                 allGames[gameId].gameName,
+                                 allGames[gameId].numOfPlayers);
+
+    // 3. 
+
+} // restOfFinishGameLogics
+
+
+
 function getScoreFromTiles(playerTiles){
      
     let res = 0;
@@ -177,6 +179,8 @@ function createPlayersTiles(shuffledTiles, numOfPlayers) {
     if(numOfPlayers === 3) {
         playersTiles.push(shuffledTiles.slice(12, 18))
     } // if (numOfPlayers === 3)
+
+    return playersTiles;
 } // createPlayersTiles
 
 function shuffleTiles() {
