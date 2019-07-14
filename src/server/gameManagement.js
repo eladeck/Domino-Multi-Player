@@ -8,7 +8,8 @@ let allGames = {}; // pairs of {gameId : state}
 /********************************** */
 
 gameManagement.post('/goToLobby', (req, res) => {
-    playerGotOutFromGame(req.session.id, req.query.gameId, req.query.watchOnly);
+    let watchOnly = req.query.watchOnly === "false" ? false : true;
+    playerGotOutFromGame(req.session.id, req.query.gameId, watchOnly);
 });
 
 
