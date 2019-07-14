@@ -8,8 +8,7 @@ let allGames = {}; // pairs of {gameId : state}
 /********************************** */
 
 gameManagement.post('/goToLobby', (req, res) => {
-    console.log(`user ${auth.getUserInfo(req.session.id).name} from game id ${req.query.gameId} has requested to go back to lobby`);
-    playerGotOutFromGame(req.session.id, req.query.gameId);
+    playerGotOutFromGame(req.session.id, req.query.gameId, req.query.watchOnly);
 });
 
 
@@ -224,9 +223,10 @@ function buildBoard() {
     return board;
 } // buildBoard
 
-function playerGotOutFromGame(sessionId, gameId) {
+function playerGotOutFromGame(sessionId, gameId, watchOnly) {
     if(!allGames[gameId]) {console.log(`player ${sessionId} requested to exit game ${gameId} but it does not exist;`); return; }
-    
+    if(watchOnly) return;
+
     if(allGames[gameId].playersInfo[0].sessionId === sessionId) {
         allGames[gameId].playersInfo[0].sessionId = '';
     } else if(allGames[gameId].playersInfo[1].sessionId === sessionId) {
@@ -362,20 +362,19 @@ function switchTurn(gameId) {
 
 /******************************* request handling ***************************************************/
 // gameManagement.get('/state',auth.userAuthentication, (req, res) => {
-gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק אבל עכשיו זה מכניס לפה שחקנים שלא רשומים בסשן'ס ליסט. כן צריך את האות' של ספיבק שיסנן שחקנים שלא ביוזרס ליסט. צריך לחשוב זה מקרה קצה בתכל'ס. נראלי.
+    gameManagement.get('/state', (req, res) => { // העפתי את הקוד של שפיבק אבל עכשיו זה מכניס לפה שחקנים שלא רשומים בסשן'ס ליסט. כן צריך את האות' של ספיבק שיסנן שחקנים שלא ביוזרס ליסט. צריך לחשוב זה מקרה קצה בתכל'ס. נראלי.
 
 
     let gameId = req.query.gameId;
+    let watchOnly = req.query.watchOnly === "false" ? false : true;
 
-   fillPlayersSessionIds(req.session.id, gameId);
-
-
-
-   const playerUniqueId = extractPlayerUniqueId(req.session.id, gameId); // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-   if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
- 
-    res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
-        logicBoard: allGames[gameId].logicBoard,
+    if(watchOnly === false) {
+        fillPlayersSessionIds(req.session.id, gameId);
+        const playerUniqueId = extractPlayerUniqueId(req.session.id, gameId); // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
+        if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
+        
+        res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
+ logicBoard: allGames[gameId].logicBoard,
         playerTiles: allGames[gameId].playersTiles[playerUniqueId],
         yourUniqueId: playerUniqueId, // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
         youWon: allGames[gameId].playersInfo[playerUniqueId].won,
@@ -388,7 +387,25 @@ gameManagement.get('/state', (req, res) => { // העפתי את הקוד של ש
         playersInfo:allGames[gameId].playersInfo,
         allPlayersPot:allGames[gameId].allPlayersPot,
         playerName:allGames[gameId].playersInfo[playerUniqueId].name,
-    });
+        });
+    } else {// if watch only === false 
+        res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
+            playerTiles: null,
+            yourUniqueId:null,
+            youWon: null,
+            stats:  null,
+            playerName:null,
+
+            logicBoard: allGames[gameId].logicBoard,
+            activePlayer: allGames[gameId].activePlayer,
+            secondsElapsed: allGames[gameId].secondsElapsed,
+            howManyPlayersAreReady: allGames[gameId].howManyPlayersAreReady,
+            isGameOver: allGames[gameId].isGameOver,
+            shouldGameStart: allGames[gameId].shouldGameStart,
+            playersInfo:allGames[gameId].playersInfo,
+            allPlayersPot:allGames[gameId].allPlayersPot,
+        });
+    } // else
 });
 
 gameManagement.post('/move', auth.userAuthentication, (req, res) => {

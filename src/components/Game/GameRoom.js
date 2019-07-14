@@ -68,10 +68,12 @@ class GameRoom extends Component {
         
     }
 
+  
     getState() {
-        fetch(`/game/state?gameId=${this.props.gameId}`, {method:'GET', credentials: 'include'})
+        console.log(`watch only is ${this.props.watchOnly}`)
+        fetch(`/game/state?gameId=${this.props.gameId}&watchOnly=${this.props.watchOnly}`, {method:'GET', credentials: 'include'})
         .then(response => {return response.json()})
-        .then(state => 
+        .then(state => {
             this.setState({
                 logicBoard: state.logicBoard,
                 playerTiles: state.playerTiles,
@@ -86,7 +88,7 @@ class GameRoom extends Component {
                 playersInfo:state.playersInfo,
                 allPlayersPot:state.allPlayersPot,
                 playerName: state.playerName,
-            }))
+            })})
         
         if(!this.state.isGameOver) {
             this.timeoutId = setTimeout(this.getState, 200);
@@ -482,8 +484,7 @@ class GameRoom extends Component {
     handleGoToLobby() {
         clearTimeout(this.timeoutId);
 
-        console.log(`about to request to go back to lobby. game id is ${this.props.gameId}`)
-        fetch(`game/goToLobby?gameId=${this.props.gameId}`, {method:'POST', credentials:'include'})
+        fetch(`game/goToLobby?gameId=${this.props.gameId}&watchOnly=${this.props.watchOnly}`, {method:'POST', credentials:'include'})
         
         setTimeout(() => this.props.switchScreen('lobby'), 200);
     }
@@ -516,8 +517,8 @@ class GameRoom extends Component {
             {this.state.shouldGameStart ? ( <div><br></br>
             <br></br>
             <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
-            <div>{this.state.isGameOver ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can till play." : null}</h1>)}</div>
             <div>{this.state.isGameOver ? (<h3>{this.state.finishMessage}</h3>) : null}</div>
+            <div>{this.state.isGameOver && !this.props.watchOnly ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can still play." : null}</h1>)}</div>
             <h2>{formatSeconds(this.state.secondsElapsed)}</h2>
              {/* <div>{this.state.isGameOver ? (null) :<button className="btnStyle" onClick={this.handleStartClick}>start</button>}</div> */}
              <div style={{textDecoration: "underline"}}>Players:</div>
@@ -537,14 +538,15 @@ class GameRoom extends Component {
              <br></br>
             <h1 style={{top:"-14px", position:"fixed", left:"400px"}}>welcome to game {this.props.gameId.split(',')[1]}</h1>
 
-                <Statistics 
+              
+                  {this.props.watchOnly ? null : <Statistics 
                     myName = {this.state.playerName}
                     allPlayersPot = {this.state.allPlayersPot}
                     totalTurns = {this.state.stats.totalTurns}
                     totalPot = {this.state.stats.totalPot}
                     avgTimePerTurn={this.state.stats.avgTimePerTurn}
                     score = {this.state.stats.score} 
-                />
+                />}
 
 
                  {/* {this.state.logicBoard === undefined ? null : */}
@@ -558,15 +560,17 @@ class GameRoom extends Component {
                     gameId={this.props.gameId}
                 />
                 {/* } */}
-
-                <Player 
+                
+                
+                {this.props.watchOnly ? null : <Player 
                     tiles={this.state.playerTiles}
                     tileSelected={this.tileSelected}
                     handleSelected={this.handleSelected}
                     selectedTile={this.state.selectedTile}
                     isGameOver={this.state.isGameOver}             
                     isMyTurn={isMyTurn}
-                /></div>) : 
+                />}
+                </div>) : 
                 ( 
                     <div>
                         <div title="flipping TAKI card" className="flipping-card-wrapper">

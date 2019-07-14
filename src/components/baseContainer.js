@@ -10,7 +10,7 @@ export default class BaseContainer extends React.Component {
         this.state = {
             screenToRender:'login',
             gameId:null,
-
+            watchOnly: false,
             currentUser: {
                 name: ''
             }
@@ -74,6 +74,8 @@ export default class BaseContainer extends React.Component {
                 <GameRoom
                     switchScreen={this.switchScreen}
                     gameId={this.state.gameId}
+                    watchOnly={this.state.watchOnly}
+                    
                 />)
 
 
@@ -82,8 +84,8 @@ export default class BaseContainer extends React.Component {
         //for bonus: return this.renderChatRoom();
     } // render
 
-    switchScreen(screenToRender, gameId) {
-        this.setState({screenToRender, gameId})
+    switchScreen(screenToRender, gameId, watchOnly = false) {
+        this.setState({screenToRender, gameId, watchOnly})
     } // switchScreen
 
 

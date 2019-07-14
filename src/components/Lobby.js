@@ -17,6 +17,7 @@ class Lobby extends Component {
         this.renderUsers = this.renderUsers.bind(this)
         this.isEmpty = this.isEmpty.bind(this)
         this.handleDeleteClick = this.handleDeleteClick.bind(this)
+        this.handleWatchGame = this.handleWatchGame.bind(this);
 
         this.userListDoesntContainMe = this.userListDoesntContainMe.bind(this)
     } // c'tor
@@ -41,6 +42,12 @@ class Lobby extends Component {
         return true;
     } // isEmpty
 
+    handleWatchGame(gameId) {
+
+        console.log(`in handleWatchGame`);
+        this.props.switchScreen('game', gameId, /*watchOnly*/true);
+
+    } // handleWatchGame
         
     handleDeleteClick(numOfPlayers, gameId)
     {
@@ -121,6 +128,7 @@ class Lobby extends Component {
                             it requires {game.numOfPlayers} players. 
                              {game.howManyPlayersAreReady} players are in the game, {gameStartedText}
                         </button>
+                        <button onClick={() => this.handleWatchGame(game.gameId)}>WATCH GAME (bonus!)</button>
                         {game.shouldHaveDeleteButton ? <button onClick={()=>this.handleDeleteClick(game.howManyPlayersAreReady, game.gameId)} >delete game</button> : null}
                         
                         <br></br>
