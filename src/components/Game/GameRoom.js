@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import Board from './Board.js';
 import Player from './Player.js';
 import Statistics from './Statistics.js'
+import ChatContainer from '../chat/chatContainer.js'
 // import { stat } from 'fs';
 // import Back from './back.png';
 // import Front from './front.png';
@@ -548,8 +549,13 @@ class GameRoom extends Component {
                     score = {this.state.stats.score} 
                 />}
 
+                <div className="chat-base-container">
+                    <ChatContainer 
+                         gameId={this.props.gameId}
+                    />
+                </div>
 
-                 {/* {this.state.logicBoard === undefined ? null : */}
+
                 <Board 
                     selectedTile={this.state.selectedTile}
                     tileWasPlaced={this.tileWasPlaced}

@@ -1,3 +1,9 @@
+.chat-base-container {
+    position:fixed;
+    top:400px;
+    left:1000px;
+}
+
 .btn {
     font-size: 16px;
     padding-left: 8px;

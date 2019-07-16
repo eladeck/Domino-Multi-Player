@@ -12,6 +12,26 @@ body {
     border-width: 7px;
 	animation: 3s ease 0s infinite beat;
   }
+
+  .converssion-area-wrpper{
+	max-height:300px;
+	height:300px;
+	overflow:scroll;
+  }
+
+  .chat-base-container{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: fixed;
+    top: 400px;
+    bottom: 0;
+    left: 1000px;
+    right: 0;
+	max-width: 500px;
+	
+	
+}
   
   @keyframes beat {
 	0%, 50%, 100% { transform: scale(1, 1); }

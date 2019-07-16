@@ -31,7 +31,7 @@ export default class converssionArea extends React.Component {
     }
 
     getChatContent() {
-        return fetch('/chat', {method: 'GET', credentials: 'include'})
+        return fetch(`/chat?gameId=${this.props.gameId}`, {method: 'GET', credentials: 'include'})
         .then((response) => {
             if (!response.ok){
                 throw response;
