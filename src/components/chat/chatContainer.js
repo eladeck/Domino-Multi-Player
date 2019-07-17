@@ -9,8 +9,8 @@ export default class chatContainer extends React.Component {
     render() {
         return(
             <div className="chat-contaier">
-                <ConverssionArea gameId={this.props.gameId}/>
-                <ChatInput gameId={this.props.gameId}/>
+                <ConverssionArea gameId={this.props.gameId} watchOnly={this.props.watchOnly}/>
+                <ChatInput gameId={this.props.gameId} watchOnly={this.props.watchOnly}/>
             </div>
         )
     } // render         

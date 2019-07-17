@@ -15,8 +15,8 @@ export default class ChatInput extends React.Component {
     render() {               
         return(
             <form className="chat-input-wrapper" onSubmit={this.sendText}>
-                <input disabled={this.state.sendInProgress} placeholder={this.state.sendInProgress ? "Sending..." : "enter text here"} ref={input => this.inputElement = input} />
-                <input type="submit" className="btn" disabled={this.state.sendInProgress} value="Send" />
+                <input disabled={this.state.sendInProgress || this.props.watchOnly} placeholder={this.props.watchOnly ? "watchers can't chat :(" : "enter text here"} ref={input => this.inputElement = input} />
+                <input type="submit" className="btn" disabled={this.state.sendInProgress || this.props.watchOnly} value="Send" />
             </form>
         )
     }   

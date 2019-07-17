@@ -8,6 +8,10 @@ const chatManagement = express.Router();
 
 chatManagement.use(bodyParser.text());
 
+chatManagement.clearChat = function(gameId) {
+	chatContent[gameId] = [];
+}
+
 chatManagement.route('/') // it's already have the '/chat' prefix
 	.get(auth.userAuthentication, (req, res) => {		
 		// console.log(`${new Date().toLocaleTimeString()}: server got a request for the chat content`);

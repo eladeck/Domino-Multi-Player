@@ -18,16 +18,24 @@ class Lobby extends Component {
         this.isEmpty = this.isEmpty.bind(this)
         this.handleDeleteClick = this.handleDeleteClick.bind(this)
         this.handleWatchGame = this.handleWatchGame.bind(this);
+        this.howManyPropsInOnj = this.howManyPropsInOnj.bind(this);
 
         this.userListDoesntContainMe = this.userListDoesntContainMe.bind(this)
     } // c'tor
+
+    howManyPropsInOnj(obj) {
+        let count = 0;
+        for(var key in obj) {
+            count++;
+        }
+        return count;
+    } // howManyPropsInOnj
 
 
 
     //some methods
     componentDidMount() {
         this.getState();
-
     }
 
     componentWillUnmount() {
@@ -44,7 +52,6 @@ class Lobby extends Component {
 
     handleWatchGame(gameId) {
 
-        console.log(`in handleWatchGame`);
         this.props.switchScreen('game', gameId, /*watchOnly*/true);
 
     } // handleWatchGame
@@ -56,7 +63,6 @@ class Lobby extends Component {
         {
             //delete game by game name 
             fetch(`/game/deleteGame?gameId=${gameId}`, {method:'POST', credentials:'include'});
-            console.log('delete game by game name ');
         }
         else 
              alert(`you can not remove this game because there are already ${numOfPlayers}players in the game `);
@@ -98,11 +104,12 @@ class Lobby extends Component {
             const gameOwnerId = this.state.allGames[gameId].gameOwnerId; // 'name' is the value of the key 'sessionid'
             const howManyPlayersAreReady = this.state.allGames[gameId].howManyPlayersAreReady;
             const shouldGameStart = this.state.allGames[gameId].shouldGameStart;
+            const allWatchers = this.state.allGames[gameId].allWatchers;
             let shouldHaveDeleteButton = false;
             if(this.state.sessionId === gameOwnerId)
                 shouldHaveDeleteButton = true;
 
-            allGames.push({gameId, gameName, numOfPlayers, gameOwnerId, howManyPlayersAreReady, shouldGameStart, shouldHaveDeleteButton});
+            allGames.push({gameId, gameName, numOfPlayers, gameOwnerId, howManyPlayersAreReady, shouldGameStart, shouldHaveDeleteButton, allWatchers});
         } // for
 
     //     this.howManyPlayersAreReady = '';
@@ -126,7 +133,7 @@ class Lobby extends Component {
                         <button disabled={game.shouldGameStart} className={buttonClass} onClick={() => this.props.switchScreen('game', game.gameId)}>
                             go to game {game.gameName} by {this.state.allUsers[game.gameOwnerId]}! 
                             it requires {game.numOfPlayers} players. 
-                             {game.howManyPlayersAreReady} players are in the game, {gameStartedText}
+                             {game.howManyPlayersAreReady} players are in the game ({this.howManyPropsInOnj(game.allWatchers)} watchers!), {gameStartedText}
                         </button>
                         <button onClick={() => this.handleWatchGame(game.gameId)}>WATCH GAME (bonus!)</button>
                         {game.shouldHaveDeleteButton ? <button onClick={()=>this.handleDeleteClick(game.howManyPlayersAreReady, game.gameId)} >delete game</button> : null}
@@ -139,7 +146,6 @@ class Lobby extends Component {
     } // renderGames
 
     render() {
-        console.log(`${new Date()}: in lobby!`);
 
         return(
             <React.Fragment>

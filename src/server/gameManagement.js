@@ -1,9 +1,11 @@
 const express = require('express');
 const auth = require('./auth');
+const chatManagement = require('./chat');
 
 const gameManagement = express.Router(); // router is like a 'mini-app'... 
 
 let allGames = {}; // pairs of {gameId : state}
+let isIntervalSet = {};
 
 /********************************** */
 
@@ -92,6 +94,7 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
     this.isGameOver = false;
     this.playersInfo = createPlayersInfo(numOfPlayers);
     this.allPlayersPot = 0;
+    this.allWatchers = {};
 
 
     //Clock
@@ -111,8 +114,11 @@ let State = function(gameId, gameOwnerId, gameName, numOfPlayers) {
 // startGameLogics();
 
 function startGameLogics(gameId) {
-    this.incrementer = setInterval(() => 
-            allGames[gameId].secondsElapsed = allGames[gameId].secondsElapsed + 1 ,1000 /*ms*/);
+    if(!isIntervalSet[gameId]) {
+        this.incrementer = setInterval(() => 
+                allGames[gameId].secondsElapsed = allGames[gameId].secondsElapsed + 1 ,1000 /*ms*/);
+        isIntervalSet[gameId] = true;
+    }
 
     allGames[gameId].shouldGameStart = true;
 } // startGameLogics
@@ -121,7 +127,7 @@ function finishGameLogics(gameId) {
 
     // 1. game is Over
     allGames[gameId].isGameOver = true; // it's like: isGameOver = true;
-    clearInterval(allGames[gameId].incrementer); // maybe delete this line
+    // clearInterval(allGames[gameId].incrementer); // maybe delete this line
     setTimeout(() => restOfFinishGameLogics(gameId), 2000);
 } // finishGameLogics
 
@@ -150,7 +156,6 @@ function createPlayersInfo(numOfPlayers) {
 
 function restOfFinishGameLogics(gameId) {
 
-    console.log('inside restOfFinishGameLogics');
 
 
     // 2. restart the whole state 
@@ -159,7 +164,8 @@ function restOfFinishGameLogics(gameId) {
                                  allGames[gameId].gameName,
                                  allGames[gameId].numOfPlayers);
 
-    // 3. 
+    // 3. clear chat
+    chatManagement.clearChat(gameId);
 
 } // restOfFinishGameLogics
 
@@ -226,7 +232,10 @@ function buildBoard() {
 
 function playerGotOutFromGame(sessionId, gameId, watchOnly) {
     if(!allGames[gameId]) {console.log(`player ${sessionId} requested to exit game ${gameId} but it does not exist;`); return; }
-    if(watchOnly) return;
+    if(watchOnly) {
+        delete allGames[gameId].allWatchers[sessionId];
+        return;
+    }
 
     if(allGames[gameId].playersInfo[0].sessionId === sessionId) {
         allGames[gameId].playersInfo[0].sessionId = '';
@@ -375,7 +384,7 @@ function switchTurn(gameId) {
         if(playerUniqueId === 'err') throw `${req.session.id} is not in the sessions list!!`
         
         res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
- logicBoard: allGames[gameId].logicBoard,
+        logicBoard: allGames[gameId].logicBoard,
         playerTiles: allGames[gameId].playersTiles[playerUniqueId],
         yourUniqueId: playerUniqueId, // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
         youWon: allGames[gameId].playersInfo[playerUniqueId].won,
@@ -388,8 +397,10 @@ function switchTurn(gameId) {
         playersInfo:allGames[gameId].playersInfo,
         allPlayersPot:allGames[gameId].allPlayersPot,
         playerName:allGames[gameId].playersInfo[playerUniqueId].name,
+        allWatchers:allGames[gameId].allWatchers,
         });
-    } else {// if watch only === false 
+    } else {
+        allGames[gameId].allWatchers[req.session.id] = auth.getUserInfo(req.session.id).name;
         res.send({ // returning the logic board, and the SPECIFIC playerTiles that requested the state!
             playerTiles: null,
             yourUniqueId:null,
@@ -405,6 +416,7 @@ function switchTurn(gameId) {
             shouldGameStart: allGames[gameId].shouldGameStart,
             playersInfo:allGames[gameId].playersInfo,
             allPlayersPot:allGames[gameId].allPlayersPot,
+            allWatchers:allGames[gameId].allWatchers,
         });
     } // else
 });

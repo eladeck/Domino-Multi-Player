@@ -35,6 +35,7 @@ class GameRoom extends Component {
             youWon:false, 
             playersInfo:[],
             finishMessage:null,
+            allWatchers:{},
 
 
             //stats
@@ -54,6 +55,7 @@ class GameRoom extends Component {
         this.handelUndoClcik = this.handelUndoClcik.bind(this);
         this.hasNoMoreLegalMoves = this.hasNoMoreLegalMoves.bind(this);
         this.handleGoToLobby = this.handleGoToLobby.bind(this);
+        this.renderWathcers = this.renderWathcers.bind(this);
         
         // this.getScoreFromTiles = this.getScoreFromTiles.bind(this);
         this.deepClone = this.deepClone.bind(this);
@@ -65,9 +67,16 @@ class GameRoom extends Component {
 
         this.getState = this.getState.bind(this);
         this.finishGameLogics = this.finishGameLogics.bind(this);
-
-        
+        this.isEmpty = this.isEmpty.bind(this);
     }
+
+    isEmpty(obj) {
+        for(var key in obj) {
+            if(obj.hasOwnProperty(key))
+                return false;
+        }
+        return true;
+    } // isEmpty
 
   
     getState() {
@@ -89,6 +98,7 @@ class GameRoom extends Component {
                 playersInfo:state.playersInfo,
                 allPlayersPot:state.allPlayersPot,
                 playerName: state.playerName,
+                allWatchers: state.allWatchers, //{seesinId: name}
             })})
         
         if(!this.state.isGameOver) {
@@ -98,6 +108,17 @@ class GameRoom extends Component {
             this.finishGameLogics();
         }
     } // getState
+
+    renderWathcers() {
+        let watchersArr = []
+        for(var key in this.state.allWatchers) {
+            watchersArr.push(this.state.allWatchers[key]);
+        }
+
+        return watchersArr.map(name => {
+            return <div style={{opacity:"0.6"}}>{name}</div>
+        })
+    }
 
     finishGameLogics()
     {
@@ -517,6 +538,7 @@ class GameRoom extends Component {
 
             {this.state.shouldGameStart ? ( <div><br></br>
             <br></br>
+            {this.props.watchOnly ? <button onClick={this.handleGoToLobby}>go to lobby</button> : null}
             <div>turn: {isMyTurn ? 'Yours!' : this.state.activePlayer}</div>
             <div>{this.state.isGameOver ? (<h3>{this.state.finishMessage}</h3>) : null}</div>
             <div>{this.state.isGameOver && !this.props.watchOnly ? (<h1>{this.state.youWon ? 'you won' : 'you lost!'}</h1>) : (<h1>{this.state.youWon ? "You Won! but the other can still play." : null}</h1>)}</div>
@@ -533,6 +555,8 @@ class GameRoom extends Component {
                     return <div style={style}>{playerNameText}</div>
                 })}
             </div>
+            {this.isEmpty(this.state.allWatchers) ? null : <h5>all watchers:</h5>}
+            <div>{this.renderWathcers()}</div> {/*should render only if not empty */}
 
              <div>{this.state.isGameOver ? (null) : <button disabled={!isMyTurn} className="btnStyle" onClick={this.takeTileFromPot}>Pot</button>}</div>
              <br></br>
@@ -552,6 +576,7 @@ class GameRoom extends Component {
                 <div className="chat-base-container">
                     <ChatContainer 
                          gameId={this.props.gameId}
+                         watchOnly={this.props.watchOnly}
                     />
                 </div>
 
