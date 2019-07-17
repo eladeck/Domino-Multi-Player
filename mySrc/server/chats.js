@@ -14,7 +14,6 @@ chatsRouter.route('/')
     res.send(JSON.stringify(messages));
 })
 .post((req, res) => {
-    console.log(`server got a message to save: ${req.body}, from ${req.session.id}`)
     messages.push({name:auth.getName(req.session.id), msg:req.body})
     res.sendStatus(200);
 });

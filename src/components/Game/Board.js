@@ -48,7 +48,7 @@ class Board extends Component {
     } // handleMouseLeave
 
     handleMouseEnter(event) {
-        console.log(`in board handleomuserenter`)
+        // console.log(`in board handleomuserenter`)
         const target = event.target.closest('td');
         
         const id = target.id.split(',');

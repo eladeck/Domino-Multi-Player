@@ -80,7 +80,7 @@ class GameRoom extends Component {
 
   
     getState() {
-        console.log(`watch only is ${this.props.watchOnly}`)
+        // console.log(`watch only is ${this.props.watchOnly}`)
         fetch(`/game/state?gameId=${this.props.gameId}&watchOnly=${this.props.watchOnly}`, {method:'GET', credentials: 'include'})
         .then(response => {return response.json()})
         .then(state => {
@@ -104,7 +104,7 @@ class GameRoom extends Component {
         if(!this.state.isGameOver) {
             this.timeoutId = setTimeout(this.getState, 200);
         } else {
-            console.log(`in else`);
+            // console.log(`in else`);
             this.finishGameLogics();
         }
     } // getState
@@ -122,18 +122,18 @@ class GameRoom extends Component {
 
     finishGameLogics()
     {
-        console.log(`in finish Game Logics`);
+        // console.log(`in finish Game Logics`);
         this.setState({finishMessage: 'Hope you enjoyed, going to lobby now...'}); 
         setTimeout(() => this.props.switchScreen('lobby'), 4000);
     }
 
     componentDidMount() {
-        console.log(`in compononet DID mount`);
+        // console.log(`in compononet DID mount`);
         this.getState();
     } // 
 
     componentWillUnmount() {
-        console.log(`in compononet WILL mount`);
+        // console.log(`in compononet WILL mount`);
         clearTimeout(this.timeoutId);
     }
 
@@ -193,7 +193,6 @@ class GameRoom extends Component {
         const board = this.state.logicBoard;
         let selectedTile = maybeSelectedTile !== undefined ? maybeSelectedTile : this.state.selectedTile;
         selectedTile = document.getElementById(selectedTile);
-        console.log(`ok...`);
 
         const verticality = Number(selectedTile.parentNode.id[11]);
         const top = Number(selectedTile.id[0]);
@@ -514,13 +513,13 @@ class GameRoom extends Component {
     
     render() {
         let isMyTurn = this.state.activePlayer === this.state.mineUniqueId; // UnqiueId is simply the number of the player: 0, 1 (or 2, in case of 3 players)
-        console.log(this.state.playersInfo)
+        // console.log(this.state.playersInfo)
         let isThreePlayers = false;
         if(this.state.howManyPlayersAreReady != undefined)
              if(Number(this.state.howManyPlayersAreReady[2]) === Number(3))
                   isThreePlayers = true;
         window.state = this.state;
-        console.log(this.state.playersInfo)
+        // console.log(this.state.playersInfo)
         // if(this.state.isLastTile && this.isLastTileWasPlaced === false)  // push the last move to the array 
         // {
         //     this.isLastTileWasPlaced = true;

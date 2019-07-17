@@ -101,7 +101,6 @@ export default class BaseContainer extends React.Component {
 
 
     renderChatRoom() {
-        console.log(`about to fetch sID`)
         let sID;
         fetch('/sID',{method: 'GET', credentials: 'include'})
         .then(res => res.json())
@@ -149,7 +148,7 @@ export default class BaseContainer extends React.Component {
         fetch('/users/logout', {method: 'GET', credentials: 'include'})
         .then(response => {
             if (!response.ok) {
-                console.log(`failed to logout user ${this.state.currentUser.name} `, response);                
+                // console.log(`failed to logout user ${this.state.currentUser.name} `, response);                
             }
             this.setState(()=>({currentUser: {name:''}, screenToRender: 'login'}));
         })
