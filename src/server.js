@@ -23,4 +23,5 @@ app.use('/chat', chatManagement);
 app.use('/game', gameManagement.gameManagement); // because gameManagement is an OBJECT! that the gameManagement property of it, is the ROUTER!
 app.use('/lobby', lobbyManagement);
 
-app.listen(3000, console.log('statred listening on port 3000!'));
+const port = process.env.PORT || 3000;
+app.listen(port, console.log(`statred listening on port ${port}!`));
