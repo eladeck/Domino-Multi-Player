@@ -1,1 +1,1 @@
-npm run start-watch
+web: npm run start-watch
