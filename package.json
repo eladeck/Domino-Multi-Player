@@ -9,6 +9,9 @@
     "start": "node --inspect ./src/server.js",
     "start-watch": "nodemon --inspect ./src/server.js localhost 3000"
   },
+  "engines": {
+    "node": "12.13.0"
+  },
   "author": "Spivak Ofer",
   "license": "ISC",
   "devDependencies": {
